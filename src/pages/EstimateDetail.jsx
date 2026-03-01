@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getEstimateById, getClients } from '../utils/storage';
 import { formatCurrency } from '../utils/calculations';
@@ -7,17 +7,21 @@ import { generatePDF } from '../utils/pdf';
 export default function EstimateDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const estimate = getEstimateById(id);
-  const clientName = (() => {
-    if (!estimate) return '';
-    const client = getClients().find((c) => c.id === estimate.clientId);
-    return client?.name || '';
-  })();
+  const [estimate, setEstimate] = useState(null);
+  const [clientName, setClientName] = useState('');
 
   useEffect(() => {
-    if (!estimate) navigate('/');
-  }, [estimate, navigate]);
+    getEstimateById(id).then((est) => {
+      if (!est) { navigate('/'); return; }
+      setEstimate(est);
+      if (est.clientId) {
+        getClients().then((clients) => {
+          const client = clients.find((c) => c.id === est.clientId);
+          setClientName(client?.name || '');
+        });
+      }
+    });
+  }, [id, navigate]);
 
   if (!estimate) return null;
 

@@ -1,25 +1,22 @@
 import { useState, useCallback } from 'react';
 import { AuthContext } from './authContext';
-import { checkPin } from '../utils/storage';
+import { login as apiLogin, logout as apiLogout } from '../utils/storage';
 
-const SESSION_KEY = 'pce_session';
+const TOKEN_KEY = 'pce_token';
 
 export function AuthProvider({ children }) {
   const [authenticated, setAuthenticated] = useState(() => {
-    return sessionStorage.getItem(SESSION_KEY) === 'true';
+    return sessionStorage.getItem(TOKEN_KEY) !== null;
   });
 
-  const login = useCallback((pin) => {
-    if (checkPin(pin)) {
-      sessionStorage.setItem(SESSION_KEY, 'true');
-      setAuthenticated(true);
-      return true;
-    }
-    return false;
+  const login = useCallback(async (pin) => {
+    const ok = await apiLogin(pin);
+    if (ok) setAuthenticated(true);
+    return ok;
   }, []);
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem(SESSION_KEY);
+    apiLogout();
     setAuthenticated(false);
   }, []);
 

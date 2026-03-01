@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getClients, saveClient, deleteClient } from '../utils/storage';
 
 export default function Clients() {
-  const [clients, setClients] = useState(() => getClients());
+  const [clients, setClients] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', phone: '', email: '', address: '' });
   const [editing, setEditing] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    getClients().then(setClients);
+  }, []);
 
   function resetForm() {
     setForm({ name: '', phone: '', email: '', address: '' });
@@ -29,19 +33,19 @@ export default function Clients() {
     return errs;
   }
 
-  function handleSave(e) {
+  async function handleSave(e) {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    saveClient({ ...form, ...(editing ? { id: editing.id } : {}) });
-    setClients(getClients());
+    await saveClient({ ...form, ...(editing ? { id: editing.id } : {}) });
+    setClients(await getClients());
     setShowForm(false);
     resetForm();
   }
 
-  function handleDelete(id) {
-    deleteClient(id);
-    setClients(getClients());
+  async function handleDelete(id) {
+    await deleteClient(id);
+    setClients(await getClients());
     setConfirmDelete(null);
   }
 

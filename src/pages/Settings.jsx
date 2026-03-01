@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getPin, setPin } from '../utils/storage';
+import { changePin } from '../utils/storage';
 
 export default function Settings() {
   const [currentPin, setCurrentPin] = useState('');
@@ -7,14 +7,10 @@ export default function Settings() {
   const [confirmPin, setConfirmPin] = useState('');
   const [message, setMessage] = useState(null); // {type: 'success'|'error', text: string}
 
-  function handleChangePin(e) {
+  async function handleChangePin(e) {
     e.preventDefault();
     setMessage(null);
 
-    if (currentPin !== getPin()) {
-      setMessage({ type: 'error', text: 'Current PIN is incorrect.' });
-      return;
-    }
     if (newPin.length < 4) {
       setMessage({ type: 'error', text: 'New PIN must be at least 4 digits.' });
       return;
@@ -28,7 +24,11 @@ export default function Settings() {
       return;
     }
 
-    setPin(newPin);
+    const ok = await changePin(currentPin, newPin);
+    if (!ok) {
+      setMessage({ type: 'error', text: 'Current PIN is incorrect.' });
+      return;
+    }
     setCurrentPin('');
     setNewPin('');
     setConfirmPin('');
@@ -120,7 +120,7 @@ export default function Settings() {
         <p className="text-sm text-gray-600">Pool Cost Estimator v1.0</p>
         <p className="text-xs text-gray-400 mt-1">
           A professional tool for estimating pool construction costs.
-          Data is stored locally in your browser.
+          Data is stored on the server and accessible from any device.
         </p>
       </div>
     </div>

@@ -26,33 +26,32 @@ const defaultForm = {
   notes: '',
 };
 
-function buildInitialForm(id) {
-  if (!id) return defaultForm;
-  const existing = getEstimateById(id);
-  if (!existing) return defaultForm;
-  return {
-    ...defaultForm,
-    ...existing.formData,
-    projectName: existing.projectName || '',
-    clientId: existing.clientId || '',
-    notes: existing.notes || '',
-  };
-}
-
 export default function EstimateForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = Boolean(id);
 
-  const [form, setForm] = useState(() => buildInitialForm(id));
-  const [clients] = useState(() => getClients());
+  const [form, setForm] = useState(defaultForm);
+  const [clients, setClients] = useState([]);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (isEditing && !getEstimateById(id)) {
-      navigate('/');
-    }
-  }, [id, isEditing, navigate]);
+    getClients().then(setClients);
+  }, []);
+
+  useEffect(() => {
+    if (!id) return;
+    getEstimateById(id).then((existing) => {
+      if (!existing) { navigate('/'); return; }
+      setForm({
+        ...defaultForm,
+        ...existing.formData,
+        projectName: existing.projectName || '',
+        clientId: existing.clientId || '',
+        notes: existing.notes || '',
+      });
+    });
+  }, [id, navigate]);
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -67,7 +66,7 @@ export default function EstimateForm() {
     return errs;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) {
@@ -87,7 +86,7 @@ export default function EstimateForm() {
       result,
     };
 
-    const saved = saveEstimate(estimateData);
+    const saved = await saveEstimate(estimateData);
     navigate(`/estimates/${saved.id || id}`);
   }
 

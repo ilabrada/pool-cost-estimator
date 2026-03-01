@@ -7,9 +7,9 @@ export default function Login() {
   const [error, setError] = useState('');
   const [shaking, setShaking] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!login(pin)) {
+    if (!await login(pin)) {
       setError('Incorrect PIN. Please try again.');
       setShaking(true);
       setPin('');

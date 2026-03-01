@@ -1,95 +1,98 @@
-const KEYS = {
-  PIN: 'pce_pin',
-  ESTIMATES: 'pce_estimates',
-  CLIENTS: 'pce_clients',
-};
+const TOKEN_KEY = 'pce_token';
 
-const DEFAULT_PIN = '1234';
-
-// --- PIN ---
-export function getPin() {
-  return localStorage.getItem(KEYS.PIN) || DEFAULT_PIN;
+function token() {
+  return sessionStorage.getItem(TOKEN_KEY);
 }
 
-export function setPin(pin) {
-  localStorage.setItem(KEYS.PIN, pin);
+function authHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
+  };
 }
 
-export function checkPin(pin) {
-  return pin === getPin();
+async function apiFetch(path, options = {}) {
+  return fetch(path, { ...options, headers: authHeaders() });
+}
+
+// --- Auth ---
+export async function login(pin) {
+  const res = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pin }),
+  });
+  if (!res.ok) return false;
+  const { token: t } = await res.json();
+  sessionStorage.setItem(TOKEN_KEY, t);
+  return true;
+}
+
+export function logout() {
+  const t = token();
+  sessionStorage.removeItem(TOKEN_KEY);
+  if (t) fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${t}` } }).catch(() => {});
+}
+
+export async function changePin(currentPin, newPin) {
+  const res = await apiFetch('/api/auth/pin', {
+    method: 'PUT',
+    body: JSON.stringify({ currentPin, newPin }),
+  });
+  return res.ok;
 }
 
 // --- Estimates ---
-export function getEstimates() {
-  try {
-    return JSON.parse(localStorage.getItem(KEYS.ESTIMATES)) || [];
-  } catch {
-    return [];
-  }
+export async function getEstimates() {
+  const res = await apiFetch('/api/estimates');
+  return res.ok ? res.json() : [];
 }
 
-export function saveEstimate(estimate) {
-  const estimates = getEstimates();
+export async function saveEstimate(estimate) {
   if (estimate.id) {
-    const idx = estimates.findIndex((e) => e.id === estimate.id);
-    if (idx >= 0) {
-      estimates[idx] = { ...estimate, updatedAt: new Date().toISOString() };
-    } else {
-      estimates.push({ ...estimate, updatedAt: new Date().toISOString() });
-    }
-  } else {
-    const newEstimate = {
-      ...estimate,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    estimates.push(newEstimate);
-    localStorage.setItem(KEYS.ESTIMATES, JSON.stringify(estimates));
-    return newEstimate;
+    const res = await apiFetch(`/api/estimates/${estimate.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(estimate),
+    });
+    return res.json();
   }
-  localStorage.setItem(KEYS.ESTIMATES, JSON.stringify(estimates));
-  return estimate;
+  const res = await apiFetch('/api/estimates', {
+    method: 'POST',
+    body: JSON.stringify(estimate),
+  });
+  return res.json();
 }
 
-export function deleteEstimate(id) {
-  const estimates = getEstimates().filter((e) => e.id !== id);
-  localStorage.setItem(KEYS.ESTIMATES, JSON.stringify(estimates));
+export async function deleteEstimate(id) {
+  await apiFetch(`/api/estimates/${id}`, { method: 'DELETE' });
 }
 
-export function getEstimateById(id) {
-  return getEstimates().find((e) => e.id === id) || null;
+export async function getEstimateById(id) {
+  const res = await apiFetch(`/api/estimates/${id}`);
+  return res.ok ? res.json() : null;
 }
 
 // --- Clients ---
-export function getClients() {
-  try {
-    return JSON.parse(localStorage.getItem(KEYS.CLIENTS)) || [];
-  } catch {
-    return [];
-  }
+export async function getClients() {
+  const res = await apiFetch('/api/clients');
+  return res.ok ? res.json() : [];
 }
 
-export function saveClient(client) {
-  const clients = getClients();
+export async function saveClient(client) {
   if (client.id) {
-    const idx = clients.findIndex((c) => c.id === client.id);
-    if (idx >= 0) {
-      clients[idx] = client;
-    } else {
-      clients.push(client);
-    }
-  } else {
-    const newClient = { ...client, id: crypto.randomUUID() };
-    clients.push(newClient);
-    localStorage.setItem(KEYS.CLIENTS, JSON.stringify(clients));
-    return newClient;
+    const res = await apiFetch(`/api/clients/${client.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(client),
+    });
+    return res.json();
   }
-  localStorage.setItem(KEYS.CLIENTS, JSON.stringify(clients));
-  return client;
+  const res = await apiFetch('/api/clients', {
+    method: 'POST',
+    body: JSON.stringify(client),
+  });
+  return res.json();
 }
 
-export function deleteClient(id) {
-  const clients = getClients().filter((c) => c.id !== id);
-  localStorage.setItem(KEYS.CLIENTS, JSON.stringify(clients));
+export async function deleteClient(id) {
+  await apiFetch(`/api/clients/${id}`, { method: 'DELETE' });
 }

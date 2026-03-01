@@ -1,17 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getEstimates, getClients, deleteEstimate } from '../utils/storage';
 import { formatCurrency } from '../utils/calculations';
 
 export default function Dashboard() {
-  const [estimates, setEstimates] = useState(() => getEstimates());
-  const [clients] = useState(() => getClients());
+  const [estimates, setEstimates] = useState([]);
+  const [clients, setClients] = useState([]);
   const [search, setSearch] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
   const navigate = useNavigate();
 
-  function refresh() {
-    setEstimates(getEstimates());
+  useEffect(() => {
+    getEstimates().then(setEstimates);
+    getClients().then(setClients);
+  }, []);
+
+  async function refresh() {
+    setEstimates(await getEstimates());
   }
 
   function clientName(clientId) {
@@ -19,9 +24,9 @@ export default function Dashboard() {
     return c ? c.name : '';
   }
 
-  function handleDelete(id) {
-    deleteEstimate(id);
-    refresh();
+  async function handleDelete(id) {
+    await deleteEstimate(id);
+    await refresh();
     setConfirmDelete(null);
   }
 
