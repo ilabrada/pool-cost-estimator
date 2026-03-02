@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400">
+  <!-- Background -->
+  <rect width="600" height="400" fill="#f0f9ff"/>
+  <!-- Deck surround (L shape, slightly larger) -->
+  <polygon points="78,52 382,52 382,192 518,192 518,352 78,352" fill="#cec1a2" stroke="#b0a078" stroke-width="2"/>
+  <!-- Pool water (L shape) -->
+  <polygon points="98,72 362,72 362,212 498,212 498,332 98,332" fill="#38bce8" stroke="#0077B6" stroke-width="3"/>
+  <!-- Water shimmer lines -->
+  <path d="M 120 160 Q 200 140 300 160 Q 340 170 342 170" fill="none" stroke="white" stroke-width="2" opacity="0.5"/>
+  <path d="M 120 270 Q 200 250 200 270 Q 350 290 478 270" fill="none" stroke="white" stroke-width="2" opacity="0.5"/>
+  <!-- Label -->
+  <text x="300" y="380" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#023E8A" font-weight="bold">L-Shaped Pool</text>
+  <text x="300" y="398" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#6C757D">[ Placeholder — replace with actual photo ]</text>
+</svg>

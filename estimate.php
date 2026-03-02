@@ -248,6 +248,9 @@ include __DIR__ . '/includes/header.php';
                                 <option value="oval" <?= ($estimate['pool_shape'] ?? '') === 'oval' ? 'selected' : '' ?>>Oval</option>
                                 <option value="freeform" <?= ($estimate['pool_shape'] ?? '') === 'freeform' ? 'selected' : '' ?>>Freeform</option>
                             </select>
+                            <a href="#" class="shape-preview-link" onclick="openShapePreview(); return false;">
+                                <span class="material-icons-round">image</span> View shape example
+                            </a>
                         </div>
                     </div>
                     <!-- Calculated Metrics Display -->
@@ -607,6 +610,21 @@ include __DIR__ . '/includes/header.php';
         </div>
     </div>
 </form>
+
+<!-- Pool Shape Preview Modal -->
+<div class="modal-overlay" id="shape-preview-modal" onclick="closeShapePreview()">
+    <div class="modal-dialog shape-preview-dialog" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 id="shape-preview-title">Pool Shape</h3>
+            <button type="button" class="btn-icon shape-preview-close" onclick="closeShapePreview()" title="Close">
+                <span class="material-icons-round">close</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <img id="shape-preview-img" src="" alt="Pool shape example" class="shape-preview-img">
+        </div>
+    </div>
+</div>
 
 <!-- Mobile floating summary bar -->
 <div class="mobile-summary-bar" id="mobile-summary">

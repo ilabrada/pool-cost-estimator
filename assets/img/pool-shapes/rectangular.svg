@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400">
+  <!-- Background -->
+  <rect width="600" height="400" fill="#f0f9ff"/>
+  <!-- Deck surround -->
+  <rect x="80" y="55" width="440" height="270" rx="6" fill="#cec1a2" stroke="#b0a078" stroke-width="2"/>
+  <!-- Pool water -->
+  <rect x="100" y="75" width="400" height="230" rx="4" fill="#38bce8" stroke="#0077B6" stroke-width="3"/>
+  <!-- Water shimmer lines -->
+  <path d="M 125 160 Q 210 135 300 160 Q 390 185 475 160" fill="none" stroke="white" stroke-width="2" opacity="0.5"/>
+  <path d="M 125 210 Q 210 185 300 210 Q 390 235 475 210" fill="none" stroke="white" stroke-width="2" opacity="0.5"/>
+  <!-- Label -->
+  <text x="300" y="358" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#023E8A" font-weight="bold">Rectangular Pool</text>
+  <text x="300" y="382" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#6C757D">[ Placeholder — replace with actual photo ]</text>
+</svg>

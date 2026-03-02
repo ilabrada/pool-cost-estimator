@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" width="600" height="420">
+  <!-- Background -->
+  <rect width="600" height="420" fill="#f0f9ff"/>
+  <!-- Pool water (kidney shape) -->
+  <path d="M 300,65
+           C 440,50 555,125 545,218
+           C 535,312 445,368 315,368
+           C 200,368 78,306 68,212
+           C 58,138 118,68 198,78
+           C 240,84 252,128 262,148
+           C 272,168 262,180 248,172
+           C 230,162 228,108 300,65 Z"
+        fill="#38bce8" stroke="#0077B6" stroke-width="3"/>
+  <!-- Water shimmer lines -->
+  <path d="M 160 200 Q 270 175 360 200 Q 440 220 500 200" fill="none" stroke="white" stroke-width="2" opacity="0.5"/>
+  <path d="M 140 250 Q 260 228 360 250 Q 450 268 510 250" fill="none" stroke="white" stroke-width="2" opacity="0.5"/>
+  <!-- Label -->
+  <text x="300" y="396" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#023E8A" font-weight="bold">Kidney Pool</text>
+  <text x="300" y="415" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#6C757D">[ Placeholder — replace with actual photo ]</text>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400">
+  <!-- Background -->
+  <rect width="600" height="400" fill="#f0f9ff"/>
+  <!-- Deck surround (slightly larger ellipse) -->
+  <ellipse cx="300" cy="190" rx="230" ry="148" fill="#cec1a2" stroke="#b0a078" stroke-width="2"/>
+  <!-- Pool water (oval/ellipse) -->
+  <ellipse cx="300" cy="190" rx="210" ry="128" fill="#38bce8" stroke="#0077B6" stroke-width="3"/>
+  <!-- Water shimmer lines -->
+  <path d="M 130 175 Q 215 152 300 175 Q 385 198 470 175" fill="none" stroke="white" stroke-width="2" opacity="0.5"/>
+  <path d="M 120 210 Q 210 188 300 210 Q 390 232 480 210" fill="none" stroke="white" stroke-width="2" opacity="0.5"/>
+  <!-- Label -->
+  <text x="300" y="362" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#023E8A" font-weight="bold">Oval Pool</text>
+  <text x="300" y="384" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#6C757D">[ Placeholder — replace with actual photo ]</text>
+</svg>

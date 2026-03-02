@@ -1187,6 +1187,63 @@ textarea { resize: vertical; min-height: 60px; }
     gap: 0.5rem;
 }
 
+/* ── Pool Shape Preview ──────────────────────────────────────────── */
+.shape-preview-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8125rem;
+    color: var(--primary);
+    text-decoration: none;
+    margin-top: 6px;
+}
+
+.shape-preview-link:hover {
+    text-decoration: underline;
+    color: var(--primary-dark);
+}
+
+.shape-preview-link .material-icons-round {
+    font-size: 1rem;
+}
+
+.shape-preview-dialog {
+    max-width: 580px;
+    width: 92%;
+}
+
+.shape-preview-dialog .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+}
+
+.shape-preview-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+.shape-preview-close:hover {
+    color: var(--text);
+    background: var(--border-light);
+}
+
+.shape-preview-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
 /* ── Empty State ─────────────────────────────────────────────────── */
 .empty-state {
     text-align: center;

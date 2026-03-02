@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 420" width="600" height="420">
+  <!-- Background -->
+  <rect width="600" height="420" fill="#f0f9ff"/>
+  <!-- Pool water (freeform organic shape) -->
+  <path d="M 300,65
+           C 380,50 480,70 530,140
+           C 570,195 555,275 500,320
+           C 450,360 385,375 320,365
+           C 265,355 230,330 210,300
+           C 185,265 190,240 175,215
+           C 155,185 120,180 100,220
+           C 80,258 95,310 130,340
+           C 90,330 55,290 60,240
+           C 65,185 90,140 130,120
+           C 165,102 195,115 215,100
+           C 240,82 270,78 300,65 Z"
+        fill="#38bce8" stroke="#0077B6" stroke-width="3"/>
+  <!-- Water shimmer lines -->
+  <path d="M 160 210 Q 260 185 360 210 Q 430 228 490 208" fill="none" stroke="white" stroke-width="2" opacity="0.5"/>
+  <path d="M 170 255 Q 270 232 370 255 Q 440 270 495 252" fill="none" stroke="white" stroke-width="2" opacity="0.5"/>
+  <!-- Label -->
+  <text x="300" y="400" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#023E8A" font-weight="bold">Freeform Pool</text>
+  <text x="300" y="418" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" fill="#6C757D">[ Placeholder — replace with actual photo ]</text>
+</svg>

@@ -89,8 +89,49 @@ function closeConfirm() {
 
 // Close modal on escape
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeConfirm();
+    if (e.key === 'Escape') {
+        closeConfirm();
+        closeShapePreview();
+    }
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// POOL SHAPE PREVIEW
+// ═══════════════════════════════════════════════════════════════════
+
+const POOL_SHAPE_IMAGES = {
+    'rectangular': 'assets/img/pool-shapes/rectangular.jpg',
+    'l-shaped':    'assets/img/pool-shapes/l-shaped.jpg',
+    'kidney':      'assets/img/pool-shapes/kidney.jpg',
+    'oval':        'assets/img/pool-shapes/oval.jpg',
+    'freeform':    'assets/img/pool-shapes/freeform.jpg',
+};
+
+const POOL_SHAPE_LABELS = {
+    'rectangular': 'Rectangular',
+    'l-shaped':    'L-Shaped',
+    'kidney':      'Kidney',
+    'oval':        'Oval',
+    'freeform':    'Freeform',
+};
+
+function openShapePreview() {
+    const select = document.getElementById('pool-shape');
+    const shape  = select ? select.value : 'rectangular';
+    const label  = POOL_SHAPE_LABELS[shape] || 'Pool Shape';
+    const src    = POOL_SHAPE_IMAGES[shape] || POOL_SHAPE_IMAGES['rectangular'];
+
+    const img   = document.getElementById('shape-preview-img');
+    const title = document.getElementById('shape-preview-title');
+    if (img)   { img.src = src; img.alt = label + ' pool example'; }
+    if (title) title.textContent = label + ' Pool — Shape Example';
+
+    document.getElementById('shape-preview-modal')?.classList.add('show');
+}
+
+function closeShapePreview() {
+    document.getElementById('shape-preview-modal')?.classList.remove('show');
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // CLIENT AUTOCOMPLETE
