@@ -50,6 +50,15 @@ define('DB_NAME', 'your_database_name');
 define('DB_USER', 'your_database_user');
 define('DB_PASS', 'your_database_password');
 ```
+### iWebFusion Hosting (Deployment Settings)
+
+Use these database credentials on iWebFusion:
+
+```php
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'ttshosti_pool_estimator');
+define('DB_USER', 'ttshosti_root');
+define('DB_PASS', 'lung-widow-hacker');
 
 Also set your timezone:
 ```php
