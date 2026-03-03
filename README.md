@@ -59,6 +59,7 @@ define('DB_HOST', 'localhost');
 define('DB_NAME', 'ttshosti_pool_estimator');
 define('DB_USER', 'ttshosti_root');
 define('DB_PASS', 'lung-widow-hacker');
+```
 
 Also set your timezone:
 ```php
