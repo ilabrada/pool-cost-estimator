@@ -68,12 +68,14 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                 <span>Clients</span>
             </a>
         </li>
+        <?php if (isAdmin()): ?>
         <li class="<?= $currentPage === 'settings' ? 'active' : '' ?>">
             <a href="settings.php">
                 <span class="material-icons-round">settings</span>
                 <span>Settings</span>
             </a>
         </li>
+        <?php endif; ?>
         <li class="sidebar-divider"></li>
         <li>
             <a href="logout.php">
@@ -98,10 +100,12 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
         <span class="material-icons-round">people</span>
         <span>Clients</span>
     </a>
+    <?php if (isAdmin()): ?>
     <a href="settings.php" class="bottom-nav-item <?= $currentPage === 'settings' ? 'active' : '' ?>">
         <span class="material-icons-round">settings</span>
         <span>Settings</span>
     </a>
+    <?php endif; ?>
 </nav>
 
 <!-- Main Content -->

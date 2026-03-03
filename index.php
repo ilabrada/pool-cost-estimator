@@ -28,10 +28,16 @@ $timeout = isset($_GET['timeout']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pin = $_POST['pin'] ?? '';
-    $storedHash = getSetting('pin_hash', '');
+    $adminHash = getSetting('pin_hash', '');
+    $estimatorEnabled = getSetting('estimator_enabled', '0');
+    $estimatorHash = getSetting('estimator_pin_hash', '');
 
-    if ($storedHash && password_verify($pin, $storedHash)) {
-        login();
+    if ($adminHash && password_verify($pin, $adminHash)) {
+        login('admin');
+        header('Location: dashboard.php');
+        exit;
+    } elseif ($estimatorEnabled === '1' && $estimatorHash && password_verify($pin, $estimatorHash)) {
+        login('estimator');
         header('Location: dashboard.php');
         exit;
     } else {

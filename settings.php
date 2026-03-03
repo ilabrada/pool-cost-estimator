@@ -4,7 +4,7 @@
  */
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
-requireAuth();
+requireAdmin();
 
 $pageTitle = 'Settings';
 $tab = $_GET['tab'] ?? 'business';
@@ -66,6 +66,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             setSetting('pin_hash', password_hash($newPin, PASSWORD_DEFAULT));
             $success = 'PIN changed successfully!';
+        }
+        $tab = 'security';
+    }
+
+    if ($formAction === 'estimator') {
+        $estimatorEnabled = isset($_POST['estimator_enabled']) ? '1' : '0';
+        setSetting('estimator_enabled', $estimatorEnabled);
+
+        if ($estimatorEnabled === '1') {
+            $estimatorPin = $_POST['estimator_pin'] ?? '';
+            $estimatorPinConfirm = $_POST['estimator_pin_confirm'] ?? '';
+            $existingHash = getSetting('estimator_pin_hash', '');
+
+            // Only update PIN if a new one was entered
+            if (!empty($estimatorPin)) {
+                if (strlen($estimatorPin) < 4) {
+                    $error = 'Estimator PIN must be at least 4 characters.';
+                } elseif ($estimatorPin !== $estimatorPinConfirm) {
+                    $error = 'Estimator PINs do not match.';
+                } else {
+                    // Ensure estimator PIN is different from admin PIN
+                    $adminHash = getSetting('pin_hash', '');
+                    if ($adminHash && password_verify($estimatorPin, $adminHash)) {
+                        $error = 'Estimator PIN must be different from the Admin PIN.';
+                    } else {
+                        setSetting('estimator_pin_hash', password_hash($estimatorPin, PASSWORD_DEFAULT));
+                        $success = 'Estimator user settings saved!';
+                    }
+                }
+            } elseif (empty($existingHash)) {
+                $error = 'Please set a PIN for the Estimator user.';
+            } else {
+                $success = 'Estimator user settings saved!';
+            }
+        } else {
+            $success = 'Estimator user disabled.';
         }
         $tab = 'security';
     }
@@ -256,6 +292,47 @@ include __DIR__ . '/includes/header.php';
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">
                 <span class="material-icons-round">lock</span> Change PIN
+            </button>
+        </div>
+    </form>
+
+    <!-- Estimator User Section -->
+    <form method="POST" class="form-narrow" style="margin-top: 2rem;">
+        <?= csrfField() ?>
+        <input type="hidden" name="form_action" value="estimator">
+
+        <div class="form-card">
+            <div class="form-card-header">
+                <h3>Estimator User</h3>
+            </div>
+            <div class="form-card-body">
+                <p class="form-help">Enable a second user with a separate PIN. The Estimator user can create estimates and manage clients but cannot access Settings.</p>
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" name="estimator_enabled" value="1"
+                               <?= ($settings['estimator_enabled'] ?? '0') === '1' ? 'checked' : '' ?>
+                               onchange="document.getElementById('estimator-pin-fields').style.display = this.checked ? 'block' : 'none'">
+                        <span>Enable Estimator User</span>
+                    </label>
+                </div>
+                <div id="estimator-pin-fields" style="display: <?= ($settings['estimator_enabled'] ?? '0') === '1' ? 'block' : 'none' ?>">
+                    <div class="form-group">
+                        <label for="estimator_pin">Estimator PIN <small>(min 4 characters<?= !empty($settings['estimator_pin_hash'] ?? '') ? ' — leave blank to keep current' : '' ?>)</small></label>
+                        <input type="password" id="estimator_pin" name="estimator_pin" minlength="4"
+                               inputmode="numeric" placeholder="Enter Estimator PIN">
+                    </div>
+                    <div class="form-group">
+                        <label for="estimator_pin_confirm">Confirm Estimator PIN</label>
+                        <input type="password" id="estimator_pin_confirm" name="estimator_pin_confirm"
+                               inputmode="numeric" placeholder="Confirm Estimator PIN">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-round">save</span> Save Estimator Settings
             </button>
         </div>
     </form>

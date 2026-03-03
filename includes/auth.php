@@ -20,6 +20,10 @@ function isLoggedIn(): bool {
     return !empty($_SESSION['authenticated']) && $_SESSION['authenticated'] === true;
 }
 
+function isAdmin(): bool {
+    return isLoggedIn() && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
+}
+
 function requireAuth(): void {
     if (!isLoggedIn()) {
         header('Location: index.php');
@@ -35,8 +39,17 @@ function requireAuth(): void {
     $_SESSION['last_activity'] = time();
 }
 
-function login(): void {
+function requireAdmin(): void {
+    requireAuth();
+    if (!isAdmin()) {
+        header('Location: dashboard.php');
+        exit;
+    }
+}
+
+function login(string $role = 'admin'): void {
     $_SESSION['authenticated'] = true;
+    $_SESSION['user_role'] = $role;
     $_SESSION['last_activity'] = time();
     session_regenerate_id(true);
 }
