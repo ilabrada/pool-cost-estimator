@@ -12,6 +12,7 @@ A mobile-first web application for estimating swimming pool construction costs. 
 - **Configurable Pricing** — Customize all unit prices from Settings
 - **Real-time Calculations** — Costs update live as you fill in the form
 - **Estimate Management** — Create, edit, duplicate, delete, track status
+- **Audit Log** — Tracks who saved/modified estimates and clients, with user role, IP address, timestamp, and browser info
 
 ## Tech Stack
 
@@ -151,6 +152,7 @@ Go to [http://localhost:8888/pool-cost-estimator/](http://localhost:8888/pool-co
 ├── estimate.php              # Create/edit estimate form
 ├── clients.php               # Client management (list, add, edit, view)
 ├── settings.php              # Business info, pricing, PIN change
+├── audit-log.php             # Audit log viewer (activity history)
 ├── print-estimate.php        # Print-friendly estimate / PDF download
 ├── api.php                   # AJAX API (client search, calculations)
 ├── logout.php                # Logout
@@ -210,6 +212,18 @@ This app is designed to work perfectly on Hostinger Premium:
 - All dependencies load from CDN
 - `.htaccess` handles security and caching
 - Lightweight — minimal server resources needed
+
+## Audit Log
+
+Every create, update, delete, and duplicate action on estimates and clients is automatically logged. Settings changes are logged too. Each entry records:
+
+- **User role** — admin or estimator
+- **Date & time** — when the action occurred
+- **IP address** — where the request came from
+- **Browser (User Agent)** — which device/browser was used
+- **Details** — contextual info (estimate number, client name, totals, etc.)
+
+Access the log from the **Audit Log** link in the sidebar. Filter by entity type (estimates, clients, settings) and paginate through history.
 
 ## Security Notes
 

@@ -206,6 +206,16 @@ function saveEstimate(array $data, array $items): int {
         }
 
         $db->commit();
+
+        // Audit log
+        logAudit('estimate', $estimateId, $isNew ? 'create' : 'update', [
+            'estimate_number' => $data['estimate_number'] ?? null,
+            'client_id' => $data['client_id'] ?? null,
+            'total' => $data['total'] ?? $data['subtotal'] ?? null,
+            'status' => $data['status'] ?? 'draft',
+            'line_items_count' => count($items),
+        ]);
+
         return $estimateId;
     } catch (Exception $e) {
         $db->rollBack();
@@ -215,14 +225,25 @@ function saveEstimate(array $data, array $items): int {
 
 function deleteEstimate(int $id): bool {
     $db = getDB();
+    // Capture info before deletion for audit
+    $estimate = getEstimate($id);
     $stmt = $db->prepare('DELETE FROM estimates WHERE id = ?');
-    return $stmt->execute([$id]);
+    $result = $stmt->execute([$id]);
+    if ($result && $estimate) {
+        logAudit('estimate', $id, 'delete', [
+            'estimate_number' => $estimate['estimate_number'] ?? null,
+            'client_name' => $estimate['client_name'] ?? null,
+            'total' => $estimate['total'] ?? null,
+        ]);
+    }
+    return $result;
 }
 
 function duplicateEstimate(int $id): ?int {
     $estimate = getEstimate($id);
     if (!$estimate) return null;
 
+    $originalNumber = $estimate['estimate_number'];
     unset($estimate['id']);
     $estimate['estimate_number'] = generateEstimateNumber();
     $estimate['status'] = 'draft';
@@ -234,7 +255,15 @@ function duplicateEstimate(int $id): ?int {
         $items[] = $item;
     }
 
-    return saveEstimate($estimate, $items);
+    $newId = saveEstimate($estimate, $items);
+    if ($newId) {
+        logAudit('estimate', $newId, 'duplicate', [
+            'source_id' => $id,
+            'source_number' => $originalNumber,
+            'new_number' => $estimate['estimate_number'],
+        ]);
+    }
+    return $newId;
 }
 
 // ── Clients ─────────────────────────────────────────────────────────
@@ -279,21 +308,39 @@ function saveClient(array $data): int {
         $placeholders = implode(', ', array_fill(0, count($fields), '?'));
         $stmt = $db->prepare("INSERT INTO clients ($cols) VALUES ($placeholders)");
         $stmt->execute(array_map(fn($f) => $data[$f] ?? null, $fields));
-        return (int)$db->lastInsertId();
+        $clientId = (int)$db->lastInsertId();
+        logAudit('client', $clientId, 'create', [
+            'name' => $data['name'] ?? null,
+            'email' => $data['email'] ?? null,
+            'phone' => $data['phone'] ?? null,
+        ]);
+        return $clientId;
     } else {
         $sets = implode(', ', array_map(fn($f) => "`$f` = ?", $fields));
         $stmt = $db->prepare("UPDATE clients SET $sets WHERE id = ?");
         $values = array_map(fn($f) => $data[$f] ?? null, $fields);
         $values[] = (int)$data['id'];
         $stmt->execute($values);
+        logAudit('client', (int)$data['id'], 'update', [
+            'name' => $data['name'] ?? null,
+            'email' => $data['email'] ?? null,
+            'phone' => $data['phone'] ?? null,
+        ]);
         return (int)$data['id'];
     }
 }
 
 function deleteClient(int $id): bool {
     $db = getDB();
+    $client = getClient($id);
     $stmt = $db->prepare('DELETE FROM clients WHERE id = ?');
-    return $stmt->execute([$id]);
+    $result = $stmt->execute([$id]);
+    if ($result && $client) {
+        logAudit('client', $id, 'delete', [
+            'name' => $client['name'] ?? null,
+        ]);
+    }
+    return $result;
 }
 
 function getClientEstimateCount(int $clientId): int {
@@ -348,6 +395,71 @@ function statusBadge(string $status): string {
     ];
     $class = $colors[$status] ?? 'badge-secondary';
     return '<span class="badge ' . $class . '">' . ucfirst(e($status)) . '</span>';
+}
+
+// ── Audit Log ───────────────────────────────────────────────────────
+
+function getClientIP(): string {
+    $headers = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR'];
+    foreach ($headers as $header) {
+        if (!empty($_SERVER[$header])) {
+            $ip = trim(explode(',', $_SERVER[$header])[0]);
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                // Normalize IPv6 loopback to IPv4
+                if ($ip === '::1') {
+                    return '127.0.0.1';
+                }
+                return $ip;
+            }
+        }
+    }
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    return $ip === '::1' ? '127.0.0.1' : $ip;
+}
+
+function logAudit(string $entityType, ?int $entityId, string $action, array $extra = []): void {
+    try {
+        $db = getDB();
+        $userRole = $_SESSION['user_role'] ?? 'unknown';
+        $ip = getClientIP();
+        $userAgent = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
+        $details = !empty($extra) ? json_encode($extra, JSON_UNESCAPED_UNICODE) : null;
+
+        $stmt = $db->prepare('INSERT INTO audit_log (entity_type, entity_id, action, user_role, ip_address, user_agent, details) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $stmt->execute([$entityType, $entityId, $action, $userRole, $ip, $userAgent, $details]);
+    } catch (Exception $e) {
+        // Silently fail — audit should never break the app
+        error_log('Audit log error: ' . $e->getMessage());
+    }
+}
+
+function getAuditLogs(string $entityType = '', int $limit = 50, int $offset = 0): array {
+    $db = getDB();
+    $where = [];
+    $params = [];
+    if ($entityType) {
+        $where[] = 'entity_type = ?';
+        $params[] = $entityType;
+    }
+    $whereClause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+    $sql = "SELECT * FROM audit_log $whereClause ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll();
+}
+
+function countAuditLogs(string $entityType = ''): int {
+    $db = getDB();
+    $where = [];
+    $params = [];
+    if ($entityType) {
+        $where[] = 'entity_type = ?';
+        $params[] = $entityType;
+    }
+    $whereClause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+    $stmt = $db->prepare("SELECT COUNT(*) as cnt FROM audit_log $whereClause");
+    $stmt->execute($params);
+    return (int)$stmt->fetch()['cnt'];
 }
 
 // ── Dashboard Stats ─────────────────────────────────────────────────

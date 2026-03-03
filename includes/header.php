@@ -68,6 +68,12 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                 <span>Clients</span>
             </a>
         </li>
+        <li class="<?= $currentPage === 'audit-log' ? 'active' : '' ?>">
+            <a href="audit-log.php">
+                <span class="material-icons-round">history</span>
+                <span>Audit Log</span>
+            </a>
+        </li>
         <?php if (isAdmin()): ?>
         <li class="<?= $currentPage === 'settings' ? 'active' : '' ?>">
             <a href="settings.php">
@@ -99,6 +105,10 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
     <a href="clients.php" class="bottom-nav-item <?= $currentPage === 'clients' ? 'active' : '' ?>">
         <span class="material-icons-round">people</span>
         <span>Clients</span>
+    </a>
+    <a href="audit-log.php" class="bottom-nav-item <?= $currentPage === 'audit-log' ? 'active' : '' ?>">
+        <span class="material-icons-round">history</span>
+        <span>Log</span>
     </a>
     <?php if (isAdmin()): ?>
     <a href="settings.php" class="bottom-nav-item <?= $currentPage === 'settings' ? 'active' : '' ?>">

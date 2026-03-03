@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setSetting('estimate_validity_days', (string)(int)($_POST['estimate_validity_days'] ?? 30));
         setSetting('estimate_prefix', trim($_POST['estimate_prefix'] ?? 'EST'));
         setSetting('estimate_terms', trim($_POST['estimate_terms'] ?? ''));
+        logAudit('settings', null, 'update', ['section' => 'business']);
         $success = 'Business settings saved!';
         $tab = 'business';
     }
@@ -47,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         $success = 'Pricing updated!';
+        logAudit('settings', null, 'update', ['section' => 'pricing']);
         $tab = 'pricing';
     }
 
@@ -65,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'New PINs do not match.';
         } else {
             setSetting('pin_hash', password_hash($newPin, PASSWORD_DEFAULT));
+            logAudit('settings', null, 'update', ['section' => 'admin_pin_change']);
             $success = 'PIN changed successfully!';
         }
         $tab = 'security';
