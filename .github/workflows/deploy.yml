@@ -1,0 +1,21 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches:
+      - main  # change to 'master' if that's your branch name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /pool-estimator.ivanlabrada.com/  # adjust this path if needed
