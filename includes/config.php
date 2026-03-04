@@ -7,11 +7,11 @@
  */
 
 // ── Database Configuration ──────────────────────────────────────────
-define('DB_HOST', 'localhost');          // Usually 'localhost' on Hostinger
-define('DB_PORT', '8889');              // 3306 for Hostinger/production; 8889 for MAMP
-define('DB_NAME', 'pool_estimator');     // Your database name
-define('DB_USER', 'root');              // Your database username
-define('DB_PASS', 'root');                  // Your database password
+define('DB_HOST', '{{IWEBFUSION_DB_HOST}}');          // Usually 'localhost' on Hostinger
+define('DB_PORT', '{{IWEBFUSION_DB_PORT}}');              // 3306 for Hostinger/production; 8889 for MAMP
+define('DB_NAME', '{{IWEBFUSION_DB_NAME}}');     // Your database name
+define('DB_USER', '{{IWEBFUSION_DB_USERNAME}}');              // Your database username
+define('DB_PASS', '{{IWEBFUSION_DB_PASS}}');                  // Your database password
 define('DB_CHARSET', 'utf8mb4');
 
 // ── Application Configuration ───────────────────────────────────────
