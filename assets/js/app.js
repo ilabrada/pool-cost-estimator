@@ -7,6 +7,8 @@
 // SIDEBAR & NAVIGATION
 // ═══════════════════════════════════════════════════════════════════
 
+let currentImageIndex = 0;
+
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.querySelector('.sidebar-overlay');
@@ -99,15 +101,8 @@ document.addEventListener('keydown', (e) => {
 // POOL SHAPE PREVIEW
 // ═══════════════════════════════════════════════════════════════════
 
-const POOL_SHAPE_IMAGES = {
-    'rectangular': 'assets/img/pool-shapes/rectangular.jpg',
-    'l-shaped':    'assets/img/pool-shapes/l-shaped.jpg',
-    'kidney':      'assets/img/pool-shapes/kidney.jpg',
-    'oval':        'assets/img/pool-shapes/oval.jpg',
-    'freeform':    'assets/img/pool-shapes/freeform.jpg',
-};
-
-const POOL_SHAPE_LABELS = {
+let POOL_SHAPE_IMAGES = {}; // Will be populated dynamically
+let POOL_SHAPE_LABELS = {
     'rectangular': 'Rectangular',
     'l-shaped':    'L-Shaped',
     'kidney':      'Kidney',
@@ -117,20 +112,68 @@ const POOL_SHAPE_LABELS = {
 
 function openShapePreview() {
     const select = document.getElementById('pool-shape');
-    const shape  = select ? select.value : 'rectangular';
-    const label  = POOL_SHAPE_LABELS[shape] || 'Pool Shape';
-    const src    = POOL_SHAPE_IMAGES[shape] || POOL_SHAPE_IMAGES['rectangular'];
+    const shape = select ? select.value : 'rectangular';
 
-    const img   = document.getElementById('shape-preview-img');
-    const title = document.getElementById('shape-preview-title');
-    if (img)   { img.src = src; img.alt = label + ' pool example'; }
-    if (title) title.textContent = label + ' Pool — Shape Example';
+    // Fetch images for this shape if not already loaded
+    if (!POOL_SHAPE_IMAGES[shape]) {
+        fetch(`api.php?action=list_pool_images`)
+            .then(r => r.json())
+            .then(images => {
+                POOL_SHAPE_IMAGES = images;
+                showShapePreview(shape);
+            })
+            .catch(err => {
+                console.error('Error loading pool images:', err);
+                // Fallback to empty array
+                POOL_SHAPE_IMAGES[shape] = [];
+                showShapePreview(shape);
+            });
+    } else {
+        showShapePreview(shape);
+    }
+}
 
+function showShapePreview(shape) {
+    const images = POOL_SHAPE_IMAGES[shape] || [];
+    currentImageIndex = 0;  // Reset to first image
+    updateGalleryImage(shape, images);
+    updateGalleryIndicators(shape, images);
     document.getElementById('shape-preview-modal')?.classList.add('show');
 }
 
 function closeShapePreview() {
     document.getElementById('shape-preview-modal')?.classList.remove('show');
+}
+
+function navigateGallery(direction) {
+    const select = document.getElementById('pool-shape');
+    const shape = select ? select.value : 'rectangular';
+    const images = POOL_SHAPE_IMAGES[shape] || [];
+    currentImageIndex = (currentImageIndex + direction + images.length) % images.length;  // Wrap around
+    updateGalleryImage(shape, images);
+}
+
+function updateGalleryImage(shape, images) {
+    const img = document.getElementById('shape-preview-img');
+    const title = document.getElementById('shape-preview-title');
+    const label = POOL_SHAPE_LABELS[shape] || 'Pool Shape';
+    img.src = images[currentImageIndex];
+    img.alt = `${label} pool example ${currentImageIndex + 1}`;
+    title.textContent = `${label} Pool — Shape Example (${currentImageIndex + 1} of ${images.length})`;
+}
+
+function updateGalleryIndicators(shape, images) {
+    const indicators = document.getElementById('gallery-indicators');
+    indicators.innerHTML = '';
+    for (let i = 0; i < images.length; i++) {
+        const dot = document.createElement('span');
+        dot.className = `indicator-dot ${i === currentImageIndex ? 'active' : ''}`;
+        dot.onclick = () => { currentImageIndex = i; updateGalleryImage(shape, images); };  // Allow clicking dots
+        indicators.appendChild(dot);
+    }
+    // Hide indicators/buttons if only one image
+    document.querySelectorAll('.gallery-nav').forEach(btn => btn.style.display = images.length > 1 ? 'block' : 'none');
+    indicators.style.display = images.length > 1 ? 'flex' : 'none';
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -700,3 +743,11 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+document.addEventListener('keydown', (e) => {
+    if (document.getElementById('shape-preview-modal').classList.contains('show')) {
+        if (e.key === 'ArrowLeft') navigateGallery(-1);
+        else if (e.key === 'ArrowRight') navigateGallery(1);
+        else if (e.key === 'Escape') closeShapePreview();
+    }
+});
