@@ -14,11 +14,11 @@ jobs:
 
       - name: Replace config tokens
         run: |
-          sed -i 's/{{DB_HOST}}/${{ secrets.IWEBFUSION_DB_HOST }}/g' includes/config.php
-          sed -i 's/{{DB_NAME}}/${{ secrets.IWEBFUSION_DB_NAME }}/g' includes/config.php
-          sed -i 's/{{DB_USER}}/${{ secrets.IWEBFUSION_DB_USERNAME }}/g' includes/config.php
-          sed -i 's/{{DB_PASS}}/${{ secrets.IWEBFUSION_DB_PASS }}/g' includes/config.php
-          sed -i 's/{{DB_PORT}}/${{ secrets.IWEBFUSION_DB_PORT }}/g' includes/config.php
+          sed -i 's/{{DB_HOST}}/${{ secrets.IWEBFUSION_DEV_DB_HOST }}/g' includes/config.php
+          sed -i 's/{{DB_NAME}}/${{ secrets.IWEBFUSION_DEV_DB_NAME }}/g' includes/config.php
+          sed -i 's/{{DB_USER}}/${{ secrets.IWEBFUSION_DEV_DB_USERNAME }}/g' includes/config.php
+          sed -i 's/{{DB_PASS}}/${{ secrets.IWEBFUSION_DEV_DB_PASS }}/g' includes/config.php
+          sed -i 's/{{DB_PORT}}/${{ secrets.IWEBFUSION_DEV_DB_PORT }}/g' includes/config.php
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
