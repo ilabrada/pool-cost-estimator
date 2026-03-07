@@ -28,6 +28,31 @@ switch ($action) {
         echo json_encode($clients);
         break;
 
+    // ── List pool shape images ─────────────────────────────────────
+    case 'list_pool_images':
+        $shapeImages = [];
+        $shapes = ['rectangular', 'l-shaped', 'kidney', 'oval', 'freeform'];
+        $basePath = __DIR__ . '/assets/img/pool-shapes/';
+
+        foreach ($shapes as $shape) {
+            $shapePath = $basePath . $shape . '/';
+            $images = [];
+
+            if (is_dir($shapePath)) {
+                $files = scandir($shapePath);
+                foreach ($files as $file) {
+                    if ($file !== '.' && $file !== '..' && preg_match('/\.(jpg|jpeg|png|gif|svg)$/i', $file)) {
+                        $images[] = 'assets/img/pool-shapes/' . $shape . '/' . $file;
+                    }
+                }
+            }
+
+            $shapeImages[$shape] = $images;
+        }
+
+        echo json_encode($shapeImages);
+        break;
+
     // ── Get single client ───────────────────────────────────────────
     case 'get_client':
         $id = (int)($_GET['id'] ?? 0);

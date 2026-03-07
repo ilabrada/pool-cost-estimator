@@ -618,7 +618,14 @@ include __DIR__ . '/includes/header.php';
             </button>
         </div>
         <div class="modal-body">
+            <button class="gallery-nav gallery-prev" onclick="navigateGallery(-1)" title="Previous">
+                <span class="material-icons-round">chevron_left</span>
+            </button>
             <img id="shape-preview-img" src="" alt="Pool shape example" class="shape-preview-img">
+            <button class="gallery-nav gallery-next" onclick="navigateGallery(1)" title="Next">
+                <span class="material-icons-round">chevron_right</span>
+            </button>
+            <div class="gallery-indicators" id="gallery-indicators"></div>
         </div>
     </div>
 </div>
