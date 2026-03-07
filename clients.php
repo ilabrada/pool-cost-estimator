@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'email'   => trim($_POST['email'] ?? ''),
         'address' => trim($_POST['address'] ?? ''),
         'notes'   => trim($_POST['notes'] ?? ''),
+        'tier'    => in_array($_POST['tier'] ?? '', ['priority', 'standard']) ? $_POST['tier'] : 'priority',
     ];
 
     if (empty($clientData['name'])) {
@@ -195,6 +196,10 @@ include __DIR__ . '/includes/header.php';
                     </div>
                 <?php endif; ?>
                 <div class="detail-item">
+                    <span class="detail-label">Account Type</span>
+                    <span class="detail-value"><?= ($client['tier'] ?? 'priority') === 'priority' ? 'Priority' : 'Standard' ?></span>
+                </div>
+                <div class="detail-item">
                     <span class="detail-label">Created</span>
                     <span class="detail-value"><?= formatDate($client['created_at']) ?></span>
                 </div>
@@ -271,6 +276,13 @@ include __DIR__ . '/includes/header.php';
                     <label for="notes">Notes</label>
                     <textarea id="notes" name="notes" rows="3" 
                               placeholder="Any additional notes..."><?= e($client['notes'] ?? $_POST['notes'] ?? '') ?></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="tier">Account Type</label>
+                    <select id="tier" name="tier" class="form-control">
+                        <option value="priority" <?= ($client['tier'] ?? 'priority') === 'priority' ? 'selected' : '' ?>>Priority</option>
+                        <option value="standard" <?= ($client['tier'] ?? '') === 'standard' ? 'selected' : '' ?>>Standard</option>
+                    </select>
                 </div>
             </div>
         </div>

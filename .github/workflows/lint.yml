@@ -1,0 +1,21 @@
+name: PHP Syntax Check
+
+on: [push, pull_request]
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2' # Match this to your hosting version
+
+    - name: Check for Syntax Errors
+      run: |
+        # This finds all .php files and runs php -l on them
+        find . -name "*.php" -not -path "./vendor/*" -exec php -l {} \; | grep "Errors parsing" && exit 1 || exit 0

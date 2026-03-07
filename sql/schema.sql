@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `clients` (
     `email` VARCHAR(100) DEFAULT NULL,
     `address` TEXT DEFAULT NULL,
     `notes` TEXT DEFAULT NULL,
+    `tier` ENUM('priority','standard') NOT NULL DEFAULT 'priority',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -124,6 +125,15 @@ CREATE TABLE IF NOT EXISTS `estimate_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
+-- Migrations tracker (used by install.php migration runner)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `migrations` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `migration` VARCHAR(100) NOT NULL UNIQUE,
+    `applied_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 -- Audit Log
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `audit_log` (
@@ -145,7 +155,7 @@ CREATE TABLE IF NOT EXISTS `audit_log` (
 -- --------------------------------------------------------
 -- Default Settings
 -- --------------------------------------------------------
-INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
+INSERT IGNORE INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('business_name', 'Pool Builder Pro'),
 ('business_phone', ''),
 ('business_email', ''),
@@ -158,12 +168,13 @@ INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('estimate_terms', 'This estimate is valid for 30 days from the date of issue. Prices are subject to change based on site conditions. A 50% deposit is required to begin work. Final payment is due upon completion. All work includes a 1-year warranty on craftsmanship.'),
 ('estimate_prefix', 'EST'),
 ('pin_hash', ''),
-('installed', '0');
+('installed', '0'),
+('standard_tier_discount', '10');
 
 -- --------------------------------------------------------
 -- Default Pricing
 -- --------------------------------------------------------
-INSERT INTO `pricing` (`category`, `item_key`, `item_label`, `unit_price`, `unit`, `description`, `sort_order`) VALUES
+INSERT IGNORE INTO `pricing` (`category`, `item_key`, `item_label`, `unit_price`, `unit`, `description`, `sort_order`) VALUES
 -- Excavation
 ('excavation', 'excavation', 'Excavation & Grading', 12.00, 'cu ft', 'Site excavation based on pool volume', 1),
 ('excavation', 'hauling', 'Dirt Hauling & Disposal', 3.00, 'cu ft', 'Removal and disposal of excavated material', 2),

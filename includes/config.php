@@ -1,17 +1,22 @@
 <?php
-/**
- * Pool Cost Estimator - Configuration
- * 
- * IMPORTANT: Update the database credentials below before running install.php
- * For Hostinger: Find your DB credentials in hPanel > Databases > MySQL Databases
- */
+// ── Local Development Overrides ─────────────────────────────────────
+// config.local.php is gitignored and loaded only when present.
+// It defines DB_* constants before the token placeholders below,
+// so the tokens are never actually used in local development.
+$_localConfig = __DIR__ . '/config.local.php';
+if (file_exists($_localConfig)) {
+    require_once $_localConfig;
+}
+unset($_localConfig);
 
 // ── Database Configuration ──────────────────────────────────────────
-define('DB_HOST', '{{DB_HOST}}');          // Usually 'localhost' on Hostinger
-define('DB_PORT', '{{DB_PORT}}');              // 3306 for Hostinger/production; 8889 for MAMP
-define('DB_NAME', '{{DB_NAME}}');     // Your database name
-define('DB_USER', '{{DB_USER}}');              // Your database username
-define('DB_PASS', '{{DB_PASS}}');                  // Your database password
+// In CI/CD these tokens are replaced by sed before deployment.
+// Locally they are overridden by config.local.php above.
+defined('DB_HOST')    || define('DB_HOST',    '{{DB_HOST}}');
+defined('DB_PORT')    || define('DB_PORT',    '{{DB_PORT}}');
+defined('DB_NAME')    || define('DB_NAME',    '{{DB_NAME}}');
+defined('DB_USER')    || define('DB_USER',    '{{DB_USER}}');
+defined('DB_PASS')    || define('DB_PASS',    '{{DB_PASS}}');
 define('DB_CHARSET', 'utf8mb4');
 
 // ── Application Configuration ───────────────────────────────────────
