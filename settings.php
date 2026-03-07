@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setSetting('estimate_validity_days', (string)(int)($_POST['estimate_validity_days'] ?? 30));
         setSetting('estimate_prefix', trim($_POST['estimate_prefix'] ?? 'EST'));
         setSetting('estimate_terms', trim($_POST['estimate_terms'] ?? ''));
+        setSetting('standard_tier_discount', (string)max(0, min(100, (float)($_POST['standard_tier_discount'] ?? 0))));
         logAudit('settings', null, 'update', ['section' => 'business']);
         $success = 'Business settings saved!';
         $tab = 'business';
@@ -204,6 +205,12 @@ include __DIR__ . '/includes/header.php';
                         <label for="estimate_validity_days">Validity (days)</label>
                         <input type="number" id="estimate_validity_days" name="estimate_validity_days" min="1" max="365"
                                value="<?= e($settings['estimate_validity_days'] ?? '30') ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="standard_tier_discount">Standard Account Rate Adjustment (%)</label>
+                        <input type="number" id="standard_tier_discount" name="standard_tier_discount"
+                               step="0.5" min="0" max="100"
+                               value="<?= e($settings['standard_tier_discount'] ?? '10') ?>">
                     </div>
                 </div>
                 <div class="form-group">

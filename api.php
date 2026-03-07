@@ -32,6 +32,13 @@ switch ($action) {
     case 'get_client':
         $id = (int)($_GET['id'] ?? 0);
         $client = getClient($id);
+        if ($client) {
+            $discountPct = ($client['tier'] ?? 'priority') === 'standard'
+                ? (float)getSetting('standard_tier_discount', '0')
+                : 0.0;
+            $client['pricing_factor'] = round(1.0 - ($discountPct / 100.0), 6);
+            unset($client['tier']); // keep tier off the wire
+        }
         echo json_encode($client ?: ['error' => 'Not found']);
         break;
 

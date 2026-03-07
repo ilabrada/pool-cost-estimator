@@ -153,6 +153,10 @@ function closeShapePreview() {
             resultsDiv.classList.remove('show');
             // Clear client ID if name changed (new client)
             if (clientIdInput) clientIdInput.value = '';
+            if (pricingFactor !== 1.0) {
+                pricingFactor = 1.0;
+                recalculate();
+            }
             return;
         }
 
@@ -163,7 +167,6 @@ function closeShapePreview() {
                     resultsDiv.innerHTML = '';
                     if (clients.length === 0) {
                         resultsDiv.classList.remove('show');
-                        if (clientIdInput) clientIdInput.value = '';
                         return;
                     }
 
@@ -196,7 +199,7 @@ function closeShapePreview() {
     function selectClient(client) {
         if (clientIdInput) clientIdInput.value = client.id;
         searchInput.value = client.name;
-        
+
         const phoneInput = document.getElementById('client-phone');
         const emailInput = document.getElementById('client-email');
         const addressInput = document.getElementById('client-address');
@@ -204,6 +207,15 @@ function closeShapePreview() {
         if (phoneInput) phoneInput.value = client.phone || '';
         if (emailInput) emailInput.value = client.email || '';
         if (addressInput) addressInput.value = client.address || '';
+
+        // Silently apply client-specific pricing adjustment
+        fetch(`api.php?action=get_client&id=${encodeURIComponent(client.id)}`)
+            .then(r => r.json())
+            .then(data => {
+                pricingFactor = typeof data.pricing_factor === 'number' ? data.pricing_factor : 1.0;
+                recalculate();
+            })
+            .catch(() => { pricingFactor = 1.0; recalculate(); });
     }
 })();
 
@@ -296,6 +308,9 @@ function updateCustomItemTotal(input) {
 // COST CALCULATION ENGINE
 // ═══════════════════════════════════════════════════════════════════
 
+// Pricing factor for the currently selected client (silently adjusts unit prices)
+let pricingFactor = (typeof PRICING_FACTOR !== 'undefined') ? PRICING_FACTOR : 1.0;
+
 // Shape factors for pool area calculations
 const SHAPE_FACTORS = {
     'rectangular': 1.0,
@@ -368,7 +383,7 @@ function calculateCosts(data, metrics) {
     if (typeof PRICING === 'undefined') return { items: [], subtotal: 0 };
 
     const items = [];
-    const p = (key) => PRICING[key] ? parseFloat(PRICING[key].unit_price) : 0;
+    const p = (key) => PRICING[key] ? Math.round(parseFloat(PRICING[key].unit_price) * pricingFactor * 100) / 100 : 0;
 
     if (data.pool_length <= 0 || data.pool_width <= 0) {
         return { items: [], subtotal: 0 };

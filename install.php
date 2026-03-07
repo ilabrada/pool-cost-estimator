@@ -25,31 +25,62 @@ if ($step === '1' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: install.php?step=2');
         exit;
     } catch (PDOException $e) {
-        $error = 'Database connection failed: ' . $e->getMessage() . '. Please check your credentials in includes/config.php';
+        $error = 'Database connection failed: ' . $e->getMessage() . '. Please check your credentials in includes/config.local.php (local) or your GitHub secrets (production).';
     }
 }
 
-// Step 2: Create tables (auto-run on page load)
+// Step 2: Create tables + run pending migrations (safe to re-run)
+$migrationResults = [];
 if ($step === '2') {
     try {
         $pdo = new PDO(
-            'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET,
+            'mysql:host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET,
             DB_USER,
             DB_PASS,
             [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
         );
 
-        $sql = file_get_contents(__DIR__ . '/sql/schema.sql');
-        $pdo->exec($sql);
-        $success = 'Database tables created successfully!';
-    } catch (PDOException $e) {
-        // Check if tables already exist
-        if (strpos($e->getMessage(), 'already exists') !== false || strpos($e->getMessage(), 'Duplicate') !== false) {
-            $success = 'Database tables already exist.';
-        } else {
-            $error = 'Error creating tables: ' . $e->getMessage();
-            $step = '1'; // Go back
+        // 1. Apply base schema (CREATE TABLE IF NOT EXISTS — always safe)
+        $pdo->exec(file_get_contents(__DIR__ . '/sql/schema.sql'));
+
+        // 2. Run any pending migrations from sql/migrations/*.sql
+        $migrationDir = __DIR__ . '/sql/migrations';
+        $migrationFiles = glob($migrationDir . '/*.sql');
+        sort($migrationFiles);
+
+        foreach ($migrationFiles as $file) {
+            $name = basename($file);
+            $already = $pdo->prepare('SELECT id FROM migrations WHERE migration = ?');
+            $already->execute([$name]);
+
+            if ($already->fetch()) {
+                $migrationResults[] = ['name' => $name, 'status' => 'skipped'];
+                continue;
+            }
+
+            try {
+                $pdo->exec(file_get_contents($file));
+                $pdo->prepare('INSERT INTO migrations (migration) VALUES (?)')->execute([$name]);
+                $migrationResults[] = ['name' => $name, 'status' => 'applied'];
+            } catch (PDOException $me) {
+                // Column already exists = harmless; anything else is a real error
+                if (strpos($me->getMessage(), 'Duplicate column') !== false ||
+                    strpos($me->getMessage(), 'already exists') !== false) {
+                    $pdo->prepare('INSERT IGNORE INTO migrations (migration) VALUES (?)')->execute([$name]);
+                    $migrationResults[] = ['name' => $name, 'status' => 'skipped'];
+                } else {
+                    $migrationResults[] = ['name' => $name, 'status' => 'error', 'msg' => $me->getMessage()];
+                    $error = 'Migration failed: ' . htmlspecialchars($me->getMessage());
+                }
+            }
         }
+
+        if (!$error) {
+            $success = 'Schema and migrations applied successfully.';
+        }
+    } catch (PDOException $e) {
+        $error = 'Database error: ' . $e->getMessage();
+        $step = '1';
     }
 }
 
@@ -129,9 +160,38 @@ DB_PASS: ••••••</pre>
 
             <?php elseif ($step === '2'): ?>
                 <div class="install-step">
-                    <h3>Step 2: Create Database Tables</h3>
-                    <p>Tables and default data have been configured.</p>
-                    <a href="install.php?step=3" class="btn btn-primary btn-block btn-lg">Continue to Setup</a>
+                    <h3>Step 2: Schema &amp; Migrations</h3>
+                    <?php if ($migrationResults): ?>
+                        <table style="width:100%;font-size:0.875rem;margin-bottom:1rem;border-collapse:collapse">
+                            <thead><tr>
+                                <th style="text-align:left;padding:4px 8px;border-bottom:1px solid #dee2e6">Migration</th>
+                                <th style="text-align:left;padding:4px 8px;border-bottom:1px solid #dee2e6">Status</th>
+                            </tr></thead>
+                            <tbody>
+                            <?php foreach ($migrationResults as $r): ?>
+                                <tr>
+                                    <td style="padding:4px 8px;font-family:monospace"><?= htmlspecialchars($r['name']) ?></td>
+                                    <td style="padding:4px 8px">
+                                        <?php if ($r['status'] === 'applied'): ?>
+                                            <span style="color:#198754">&#10003; Applied</span>
+                                        <?php elseif ($r['status'] === 'skipped'): ?>
+                                            <span style="color:#6c757d">&ndash; Already applied</span>
+                                        <?php else: ?>
+                                            <span style="color:#dc3545">&#10007; Error: <?= htmlspecialchars($r['msg'] ?? '') ?></span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php else: ?>
+                        <p>Schema is up to date. No migrations found.</p>
+                    <?php endif; ?>
+                    <?php if (!$error): ?>
+                        <a href="install.php?step=3" class="btn btn-primary btn-block btn-lg">Continue to Setup</a>
+                    <?php else: ?>
+                        <a href="install.php?step=1" class="btn btn-secondary btn-block">Back</a>
+                    <?php endif; ?>
                 </div>
 
             <?php elseif ($step === '3'): ?>

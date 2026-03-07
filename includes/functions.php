@@ -301,7 +301,7 @@ function countClients(string $search = ''): int {
 
 function saveClient(array $data): int {
     $db = getDB();
-    $fields = ['name', 'phone', 'email', 'address', 'notes'];
+    $fields = ['name', 'phone', 'email', 'address', 'notes', 'tier'];
 
     if (empty($data['id'])) {
         $cols = implode(', ', array_map(fn($f) => "`$f`", $fields));

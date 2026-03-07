@@ -137,6 +137,17 @@ $settingsJson = json_encode([
     'measurement_unit' => $settings['measurement_unit'] ?? 'ft',
 ]);
 
+// Compute pricing factor for the loaded client (used silently in JS)
+$pricingFactor = 1.0;
+$clientIdForFactor = (int)($estimate['client_id'] ?? $_GET['client_id'] ?? 0);
+if ($clientIdForFactor > 0) {
+    $clientForFactor = getClient($clientIdForFactor);
+    if ($clientForFactor && ($clientForFactor['tier'] ?? 'priority') === 'standard') {
+        $discountPct = (float)getSetting('standard_tier_discount', '0');
+        $pricingFactor = round(1.0 - ($discountPct / 100.0), 6);
+    }
+}
+
 include __DIR__ . '/includes/header.php';
 ?>
 
@@ -639,6 +650,7 @@ include __DIR__ . '/includes/header.php';
     const PRICING = <?= $pricingJson ?>;
     const SETTINGS = <?= $settingsJson ?>;
     const EXISTING_ITEMS = <?= json_encode($items) ?>;
+    const PRICING_FACTOR = <?= json_encode($pricingFactor) ?>;
     document.addEventListener('DOMContentLoaded', () => {
         recalculate();
     });
