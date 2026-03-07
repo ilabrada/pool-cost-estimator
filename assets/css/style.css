@@ -176,6 +176,15 @@ h3 { font-size: 1.1rem; font-weight: 600; }
 
 .form-group-grow { flex: 2; }
 
+.form-value-label {
+    padding: 0.625rem 0.875rem;
+    background: #f8f9fa;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    color: var(--text);
+}
+
 input[type="text"],
 input[type="email"],
 input[type="tel"],

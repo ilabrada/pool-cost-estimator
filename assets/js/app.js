@@ -318,7 +318,7 @@ function getFormData() {
         pool_depth_shallow: val('pool-depth-shallow'),
         pool_depth_deep: val('pool-depth-deep'),
         pool_shape: sel('pool-shape'),
-        pool_material: sel('pool-material'),
+        pool_material: document.getElementById('pool-material')?.value || 'concrete',
         interior_finish: sel('interior-finish'),
         has_jacuzzi: chk('has-jacuzzi'),
         jacuzzi_size: nameSel('jacuzzi_size'),

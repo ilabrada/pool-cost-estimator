@@ -271,12 +271,9 @@ include __DIR__ . '/includes/header.php';
                 <div class="form-card-body">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="pool-material">Pool Material</label>
-                            <select id="pool-material" name="pool_material" onchange="recalculate()">
-                                <option value="concrete" <?= ($estimate['pool_material'] ?? '') === 'concrete' ? 'selected' : '' ?>>Concrete / Gunite</option>
-                                <option value="fiberglass" <?= ($estimate['pool_material'] ?? '') === 'fiberglass' ? 'selected' : '' ?>>Fiberglass</option>
-                                <option value="vinyl" <?= ($estimate['pool_material'] ?? '') === 'vinyl' ? 'selected' : '' ?>>Vinyl Liner</option>
-                            </select>
+                            <label>Pool Material</label>
+                            <input type="hidden" id="pool-material" name="pool_material" value="<?= e($estimate['pool_material'] ?? 'concrete') ?>">
+                            <div class="form-value-label"><?= e($pricing['shell_' . ($estimate['pool_material'] ?? 'concrete')]['item_label'] ?? 'Concrete/Gunite Shell') ?></div>
                         </div>
                         <div class="form-group">
                             <label for="interior-finish">Interior Finish</label>
