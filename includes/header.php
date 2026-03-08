@@ -88,6 +88,12 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                 <span data-i18n="nav_settings">Settings</span>
             </a>
         </li>
+        <li class="<?= $currentPage === 'release-notes' ? 'active' : '' ?>">
+            <a href="release-notes.php">
+                <span class="material-icons-round">new_releases</span>
+                <span data-i18n="nav_release_notes">Release Notes</span>
+            </a>
+        </li>
         <?php endif; ?>
         <li class="sidebar-divider"></li>
         <li>

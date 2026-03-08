@@ -12,6 +12,7 @@ window.I18N_LOCALES['es'] = {
     nav_audit_log:        'Registro de Auditoría',
     nav_settings:         'Configuración',
     nav_logout:           'Cerrar Sesión',
+    nav_release_notes:    'Notas de Versión',
 
     // ── Bottom nav (mobile) ───────────────────────────────────────
     nav_home:             'Inicio',

@@ -23,6 +23,7 @@ window.I18N_LOCALES['en'] = {
     nav_audit_log:        'Audit Log',
     nav_settings:         'Settings',
     nav_logout:           'Logout',
+    nav_release_notes:    'Release Notes',
 
     // ── Bottom nav (mobile) ───────────────────────────────────────
     nav_home:             'Home',
