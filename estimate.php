@@ -172,16 +172,17 @@ include __DIR__ . '/includes/header.php';
             <!-- Client Section -->
             <div class="form-card" id="section-client">
                 <div class="form-card-header" onclick="toggleSection('client')">
-                    <h3><span class="material-icons-round">person</span> Client Information</h3>
+                    <h3><span class="material-icons-round">person</span> <span data-i18n="section_client">Client Information</span></h3>
                     <span class="material-icons-round section-toggle">expand_less</span>
                 </div>
                 <div class="form-card-body">
                     <input type="hidden" name="client_id" id="client-id" value="<?= e($estimate['client_id'] ?? '') ?>">
                     <div class="form-row">
                         <div class="form-group form-group-grow">
-                            <label for="client-search">Client Name *</label>
+                            <label for="client-search" data-i18n="label_client_name">Client Name *</label>
                             <div class="autocomplete-wrapper">
                                 <input type="text" id="client-search" name="client_name" 
+                                       data-i18n-placeholder="placeholder_client"
                                        placeholder="Search or type new client name..."
                                        value="<?= e($estimate['client_name'] ?? '') ?>"
                                        autocomplete="off" required>
@@ -191,21 +192,22 @@ include __DIR__ . '/includes/header.php';
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="client-phone">Phone</label>
+                            <label for="client-phone" data-i18n="label_phone">Phone</label>
                             <input type="tel" id="client-phone" name="client_phone" 
                                    placeholder="(555) 123-4567"
                                    value="<?= e($estimate['client_phone'] ?? '') ?>">
                         </div>
                         <div class="form-group">
-                            <label for="client-email">Email</label>
+                            <label for="client-email" data-i18n="label_email">Email</label>
                             <input type="email" id="client-email" name="client_email" 
                                    placeholder="client@email.com"
                                    value="<?= e($estimate['client_email'] ?? '') ?>">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="client-address">Address</label>
+                        <label for="client-address" data-i18n="label_address">Address</label>
                         <input type="text" id="client-address" name="client_address" 
+                               data-i18n-placeholder="placeholder_address"
                                placeholder="Project address"
                                value="<?= e($estimate['client_address'] ?? '') ?>">
                     </div>
@@ -215,34 +217,34 @@ include __DIR__ . '/includes/header.php';
             <!-- Pool Dimensions -->
             <div class="form-card" id="section-dimensions">
                 <div class="form-card-header" onclick="toggleSection('dimensions')">
-                    <h3><span class="material-icons-round">straighten</span> Pool Dimensions</h3>
+                    <h3><span class="material-icons-round">straighten</span> <span data-i18n="section_dimensions">Pool Dimensions</span></h3>
                     <span class="material-icons-round section-toggle">expand_less</span>
                 </div>
                 <div class="form-card-body">
                     <div class="form-row form-row-4">
                         <div class="form-group">
-                            <label for="pool-length">Length (<?= e($settings['measurement_unit'] ?? 'ft') ?>)</label>
+                            <label for="pool-length" data-i18n="label_length">Length (<?= e($settings['measurement_unit'] ?? 'ft') ?>)</label>
                             <input type="number" id="pool-length" name="pool_length" 
                                    step="0.1" min="0" placeholder="30"
                                    value="<?= e($estimate['pool_length'] ?? '') ?>"
                                    oninput="recalculate()">
                         </div>
                         <div class="form-group">
-                            <label for="pool-width">Width (<?= e($settings['measurement_unit'] ?? 'ft') ?>)</label>
+                            <label for="pool-width" data-i18n="label_width">Width (<?= e($settings['measurement_unit'] ?? 'ft') ?>)</label>
                             <input type="number" id="pool-width" name="pool_width" 
                                    step="0.1" min="0" placeholder="15"
                                    value="<?= e($estimate['pool_width'] ?? '') ?>"
                                    oninput="recalculate()">
                         </div>
                         <div class="form-group">
-                            <label for="pool-depth-shallow">Shallow Depth</label>
+                            <label for="pool-depth-shallow" data-i18n="label_shallow_depth">Shallow Depth</label>
                             <input type="number" id="pool-depth-shallow" name="pool_depth_shallow" 
                                    step="0.1" min="0" placeholder="3.5"
                                    value="<?= e($estimate['pool_depth_shallow'] ?? '') ?>"
                                    oninput="recalculate()">
                         </div>
                         <div class="form-group">
-                            <label for="pool-depth-deep">Deep End</label>
+                            <label for="pool-depth-deep" data-i18n="label_deep_end">Deep End</label>
                             <input type="number" id="pool-depth-deep" name="pool_depth_deep" 
                                    step="0.1" min="0" placeholder="6"
                                    value="<?= e($estimate['pool_depth_deep'] ?? '') ?>"
@@ -251,24 +253,24 @@ include __DIR__ . '/includes/header.php';
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="pool-shape">Pool Shape</label>
+                            <label for="pool-shape" data-i18n="label_pool_shape">Pool Shape</label>
                             <select id="pool-shape" name="pool_shape" onchange="recalculate()">
-                                <option value="rectangular" <?= ($estimate['pool_shape'] ?? '') === 'rectangular' ? 'selected' : '' ?>>Rectangular</option>
-                                <option value="l-shaped" <?= ($estimate['pool_shape'] ?? '') === 'l-shaped' ? 'selected' : '' ?>>L-Shaped</option>
-                                <option value="kidney" <?= ($estimate['pool_shape'] ?? '') === 'kidney' ? 'selected' : '' ?>>Kidney</option>
-                                <option value="oval" <?= ($estimate['pool_shape'] ?? '') === 'oval' ? 'selected' : '' ?>>Oval</option>
-                                <option value="freeform" <?= ($estimate['pool_shape'] ?? '') === 'freeform' ? 'selected' : '' ?>>Freeform</option>
+                                <option value="rectangular" data-i18n="shape_rectangular" <?= ($estimate['pool_shape'] ?? '') === 'rectangular' ? 'selected' : '' ?>>Rectangular</option>
+                                <option value="l-shaped" data-i18n="shape_l_shaped" <?= ($estimate['pool_shape'] ?? '') === 'l-shaped' ? 'selected' : '' ?>>L-Shaped</option>
+                                <option value="kidney" data-i18n="shape_kidney" <?= ($estimate['pool_shape'] ?? '') === 'kidney' ? 'selected' : '' ?>>Kidney</option>
+                                <option value="oval" data-i18n="shape_oval" <?= ($estimate['pool_shape'] ?? '') === 'oval' ? 'selected' : '' ?>>Oval</option>
+                                <option value="freeform" data-i18n="shape_freeform" <?= ($estimate['pool_shape'] ?? '') === 'freeform' ? 'selected' : '' ?>>Freeform</option>
                             </select>
                             <a href="#" class="shape-preview-link" onclick="openShapePreview(); return false;">
-                                <span class="material-icons-round">image</span> View shape example
+                                <span class="material-icons-round">image</span> <span data-i18n="view_shape_example">View shape example</span>
                             </a>
                         </div>
                     </div>
                     <!-- Calculated Metrics Display -->
                     <div class="pool-metrics" id="pool-metrics">
-                        <div class="metric"><span class="metric-label">Surface Area:</span> <span id="metric-surface">0</span> sq ft</div>
-                        <div class="metric"><span class="metric-label">Volume:</span> <span id="metric-volume">0</span> gallons</div>
-                        <div class="metric"><span class="metric-label">Perimeter:</span> <span id="metric-perimeter">0</span> ft</div>
+                        <div class="metric"><span class="metric-label" data-i18n="metric_surface_area">Surface Area:</span> <span id="metric-surface">0</span> <span data-i18n="unit_sq_ft">sq ft</span></div>
+                        <div class="metric"><span class="metric-label" data-i18n="metric_volume">Volume:</span> <span id="metric-volume">0</span> <span data-i18n="unit_gallons">gallons</span></div>
+                        <div class="metric"><span class="metric-label" data-i18n="metric_perimeter">Perimeter:</span> <span id="metric-perimeter">0</span> <span data-i18n="unit_ft">ft</span></div>
                     </div>
                 </div>
             </div>
@@ -276,23 +278,23 @@ include __DIR__ . '/includes/header.php';
             <!-- Pool Construction -->
             <div class="form-card" id="section-construction">
                 <div class="form-card-header" onclick="toggleSection('construction')">
-                    <h3><span class="material-icons-round">construction</span> Pool Construction</h3>
+                    <h3><span class="material-icons-round">construction</span> <span data-i18n="section_construction">Pool Construction</span></h3>
                     <span class="material-icons-round section-toggle">expand_less</span>
                 </div>
                 <div class="form-card-body">
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Pool Material</label>
+                            <label data-i18n="label_pool_material">Pool Material</label>
                             <input type="hidden" id="pool-material" name="pool_material" value="<?= e($estimate['pool_material'] ?? 'concrete') ?>">
                             <div class="form-value-label"><?= e($pricing['shell_' . ($estimate['pool_material'] ?? 'concrete')]['item_label'] ?? 'Concrete/Gunite Shell') ?></div>
                         </div>
                         <div class="form-group">
-                            <label for="interior-finish">Interior Finish</label>
+                            <label for="interior-finish" data-i18n="label_interior_finish">Interior Finish</label>
                             <select id="interior-finish" name="interior_finish" onchange="recalculate()">
-                                <option value="plaster" <?= ($estimate['interior_finish'] ?? '') === 'plaster' ? 'selected' : '' ?>>Standard Plaster</option>
-                                <option value="pebble" <?= ($estimate['interior_finish'] ?? '') === 'pebble' ? 'selected' : '' ?>>Pebble (PebbleTec)</option>
-                                <option value="quartz" <?= ($estimate['interior_finish'] ?? '') === 'quartz' ? 'selected' : '' ?>>Quartz</option>
-                                <option value="tile" <?= ($estimate['interior_finish'] ?? '') === 'tile' ? 'selected' : '' ?>>Full Tile</option>
+                                <option value="plaster" data-i18n="finish_plaster" <?= ($estimate['interior_finish'] ?? '') === 'plaster' ? 'selected' : '' ?>>Standard Plaster</option>
+                                <option value="pebble" data-i18n="finish_pebble" <?= ($estimate['interior_finish'] ?? '') === 'pebble' ? 'selected' : '' ?>>Pebble (PebbleTec)</option>
+                                <option value="quartz" data-i18n="finish_quartz" <?= ($estimate['interior_finish'] ?? '') === 'quartz' ? 'selected' : '' ?>>Quartz</option>
+                                <option value="tile" data-i18n="finish_tile" <?= ($estimate['interior_finish'] ?? '') === 'tile' ? 'selected' : '' ?>>Full Tile</option>
                             </select>
                         </div>
                     </div>
@@ -302,7 +304,7 @@ include __DIR__ . '/includes/header.php';
             <!-- Features & Add-ons -->
             <div class="form-card" id="section-features">
                 <div class="form-card-header" onclick="toggleSection('features')">
-                    <h3><span class="material-icons-round">pool</span> Features & Add-ons</h3>
+                    <h3><span class="material-icons-round">pool</span> <span data-i18n="section_features">Features &amp; Add-ons</span></h3>
                     <span class="material-icons-round section-toggle">expand_less</span>
                 </div>
                 <div class="form-card-body">
@@ -314,12 +316,12 @@ include __DIR__ . '/includes/header.php';
                                        <?= !empty($estimate['has_jacuzzi']) ? 'checked' : '' ?>
                                        onchange="toggleFeatureOptions('jacuzzi'); recalculate()">
                                 <span class="toggle-slider"></span>
-                                <span class="toggle-label">Spa / Jacuzzi</span>
+                                <span class="toggle-label" data-i18n="feature_jacuzzi">Spa / Jacuzzi</span>
                             </label>
                             <div class="feature-options" id="options-jacuzzi" style="<?= empty($estimate['has_jacuzzi']) ? 'display:none' : '' ?>">
                                 <select name="jacuzzi_size" onchange="recalculate()">
-                                    <option value="standard" <?= ($estimate['jacuzzi_size'] ?? '') === 'standard' ? 'selected' : '' ?>>Standard (6-8 person)</option>
-                                    <option value="large" <?= ($estimate['jacuzzi_size'] ?? '') === 'large' ? 'selected' : '' ?>>Large (8-12 person)</option>
+                                    <option value="standard" data-i18n="jacuzzi_standard" <?= ($estimate['jacuzzi_size'] ?? '') === 'standard' ? 'selected' : '' ?>>Standard (6-8 person)</option>
+                                    <option value="large" data-i18n="jacuzzi_large" <?= ($estimate['jacuzzi_size'] ?? '') === 'large' ? 'selected' : '' ?>>Large (8-12 person)</option>
                                 </select>
                             </div>
                         </div>
@@ -331,10 +333,10 @@ include __DIR__ . '/includes/header.php';
                                        <?= ($estimate['num_lights'] ?? 0) > 0 ? 'checked' : '' ?>
                                        onchange="toggleFeatureOptions('lights'); recalculate()">
                                 <span class="toggle-slider"></span>
-                                <span class="toggle-label">LED Lighting</span>
+                                <span class="toggle-label" data-i18n="feature_led_lighting">LED Lighting</span>
                             </label>
                             <div class="feature-options" id="options-lights" style="<?= ($estimate['num_lights'] ?? 0) == 0 ? 'display:none' : '' ?>">
-                                <label>Number of lights</label>
+                                <label data-i18n="label_num_lights">Number of lights</label>
                                 <input type="number" name="num_lights" id="num-lights" min="1" max="20" value="<?= e($estimate['num_lights'] ?? '2') ?>" onchange="recalculate()">
                             </div>
                         </div>
@@ -346,13 +348,13 @@ include __DIR__ . '/includes/header.php';
                                        <?= !empty($estimate['has_heating']) ? 'checked' : '' ?>
                                        onchange="toggleFeatureOptions('heating'); recalculate()">
                                 <span class="toggle-slider"></span>
-                                <span class="toggle-label">Pool Heating</span>
+                                <span class="toggle-label" data-i18n="feature_heating">Pool Heating</span>
                             </label>
                             <div class="feature-options" id="options-heating" style="<?= empty($estimate['has_heating']) ? 'display:none' : '' ?>">
                                 <select name="heating_type" onchange="recalculate()">
-                                    <option value="gas" <?= ($estimate['heating_type'] ?? '') === 'gas' ? 'selected' : '' ?>>Gas Heater</option>
-                                    <option value="heatpump" <?= ($estimate['heating_type'] ?? '') === 'heatpump' ? 'selected' : '' ?>>Heat Pump</option>
-                                    <option value="solar" <?= ($estimate['heating_type'] ?? '') === 'solar' ? 'selected' : '' ?>>Solar</option>
+                                    <option value="gas" data-i18n="heating_gas" <?= ($estimate['heating_type'] ?? '') === 'gas' ? 'selected' : '' ?>>Gas Heater</option>
+                                    <option value="heatpump" data-i18n="heating_heatpump" <?= ($estimate['heating_type'] ?? '') === 'heatpump' ? 'selected' : '' ?>>Heat Pump</option>
+                                    <option value="solar" data-i18n="heating_solar" <?= ($estimate['heating_type'] ?? '') === 'solar' ? 'selected' : '' ?>>Solar</option>
                                 </select>
                             </div>
                         </div>
@@ -364,7 +366,7 @@ include __DIR__ . '/includes/header.php';
                                        <?= !empty($estimate['has_waterfall']) ? 'checked' : '' ?>
                                        onchange="recalculate()">
                                 <span class="toggle-slider"></span>
-                                <span class="toggle-label">Rock Waterfall</span>
+                                <span class="toggle-label" data-i18n="feature_waterfall">Rock Waterfall</span>
                             </label>
                         </div>
 
@@ -375,7 +377,7 @@ include __DIR__ . '/includes/header.php';
                                        <?= !empty($estimate['has_water_feature']) ? 'checked' : '' ?>
                                        onchange="recalculate()">
                                 <span class="toggle-slider"></span>
-                                <span class="toggle-label">Fountain / Scupper</span>
+                                <span class="toggle-label" data-i18n="feature_water_feature">Fountain / Scupper</span>
                             </label>
                         </div>
 
@@ -386,7 +388,7 @@ include __DIR__ . '/includes/header.php';
                                        <?= !empty($estimate['has_auto_cover']) ? 'checked' : '' ?>
                                        onchange="recalculate()">
                                 <span class="toggle-slider"></span>
-                                <span class="toggle-label">Automatic Cover</span>
+                                <span class="toggle-label" data-i18n="feature_auto_cover">Automatic Cover</span>
                             </label>
                         </div>
 
@@ -397,7 +399,7 @@ include __DIR__ . '/includes/header.php';
                                        <?= !empty($estimate['has_pool_cleaner']) ? 'checked' : '' ?>
                                        onchange="recalculate()">
                                 <span class="toggle-slider"></span>
-                                <span class="toggle-label">Automatic Cleaner</span>
+                                <span class="toggle-label" data-i18n="feature_pool_cleaner">Automatic Cleaner</span>
                             </label>
                         </div>
                     </div>
@@ -407,7 +409,7 @@ include __DIR__ . '/includes/header.php';
             <!-- Deck & Surroundings -->
             <div class="form-card" id="section-deck">
                 <div class="form-card-header" onclick="toggleSection('deck')">
-                    <h3><span class="material-icons-round">deck</span> Deck & Surroundings</h3>
+                    <h3><span class="material-icons-round">deck</span> <span data-i18n="section_deck">Deck &amp; Surroundings</span></h3>
                     <span class="material-icons-round section-toggle">expand_less</span>
                 </div>
                 <div class="form-card-body">
@@ -418,21 +420,21 @@ include __DIR__ . '/includes/header.php';
                                    <?= !empty($estimate['has_deck']) ? 'checked' : '' ?>
                                    onchange="toggleFeatureOptions('deck'); recalculate()">
                             <span class="toggle-slider"></span>
-                            <span class="toggle-label">Pool Deck</span>
+                            <span class="toggle-label" data-i18n="feature_deck">Pool Deck</span>
                         </label>
                         <div class="feature-options" id="options-deck" style="<?= empty($estimate['has_deck']) ? 'display:none' : '' ?>">
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Deck Material</label>
+                                    <label data-i18n="label_deck_material">Deck Material</label>
                                     <select name="deck_material" onchange="recalculate()">
-                                        <option value="concrete" <?= ($estimate['deck_material'] ?? '') === 'concrete' ? 'selected' : '' ?>>Standard Concrete</option>
-                                        <option value="stamped" <?= ($estimate['deck_material'] ?? '') === 'stamped' ? 'selected' : '' ?>>Stamped Concrete</option>
-                                        <option value="pavers" <?= ($estimate['deck_material'] ?? '') === 'pavers' ? 'selected' : '' ?>>Pavers</option>
-                                        <option value="travertine" <?= ($estimate['deck_material'] ?? '') === 'travertine' ? 'selected' : '' ?>>Travertine</option>
+                                        <option value="concrete" data-i18n="deck_concrete" <?= ($estimate['deck_material'] ?? '') === 'concrete' ? 'selected' : '' ?>>Standard Concrete</option>
+                                        <option value="stamped" data-i18n="deck_stamped" <?= ($estimate['deck_material'] ?? '') === 'stamped' ? 'selected' : '' ?>>Stamped Concrete</option>
+                                        <option value="pavers" data-i18n="deck_pavers" <?= ($estimate['deck_material'] ?? '') === 'pavers' ? 'selected' : '' ?>>Pavers</option>
+                                        <option value="travertine" data-i18n="deck_travertine" <?= ($estimate['deck_material'] ?? '') === 'travertine' ? 'selected' : '' ?>>Travertine</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label>Deck Area (sq ft)</label>
+                                    <label data-i18n="label_deck_area">Deck Area (sq ft)</label>
                                     <input type="number" name="deck_area" id="deck-area" 
                                            step="1" min="0" placeholder="400"
                                            value="<?= e($estimate['deck_area'] ?? '') ?>"
@@ -449,20 +451,20 @@ include __DIR__ . '/includes/header.php';
                                    <?= !empty($estimate['has_fence']) ? 'checked' : '' ?>
                                    onchange="toggleFeatureOptions('fence'); recalculate()">
                             <span class="toggle-slider"></span>
-                            <span class="toggle-label">Pool Fence</span>
+                            <span class="toggle-label" data-i18n="feature_fence">Pool Fence</span>
                         </label>
                         <div class="feature-options" id="options-fence" style="<?= empty($estimate['has_fence']) ? 'display:none' : '' ?>">
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Fence Type</label>
+                                    <label data-i18n="label_fence_type">Fence Type</label>
                                     <select name="fence_type" onchange="recalculate()">
-                                        <option value="aluminum" <?= ($estimate['fence_type'] ?? '') === 'aluminum' ? 'selected' : '' ?>>Aluminum</option>
-                                        <option value="glass" <?= ($estimate['fence_type'] ?? '') === 'glass' ? 'selected' : '' ?>>Glass Panel</option>
-                                        <option value="mesh" <?= ($estimate['fence_type'] ?? '') === 'mesh' ? 'selected' : '' ?>>Mesh Safety</option>
+                                        <option value="aluminum" data-i18n="fence_aluminum" <?= ($estimate['fence_type'] ?? '') === 'aluminum' ? 'selected' : '' ?>>Aluminum</option>
+                                        <option value="glass" data-i18n="fence_glass" <?= ($estimate['fence_type'] ?? '') === 'glass' ? 'selected' : '' ?>>Glass Panel</option>
+                                        <option value="mesh" data-i18n="fence_mesh" <?= ($estimate['fence_type'] ?? '') === 'mesh' ? 'selected' : '' ?>>Mesh Safety</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label>Fence Length (lin ft)</label>
+                                    <label data-i18n="label_fence_length">Fence Length (lin ft)</label>
                                     <input type="number" name="fence_length" id="fence-length" 
                                            step="1" min="0" placeholder="100"
                                            value="<?= e($estimate['fence_length'] ?? '') ?>"
@@ -477,11 +479,11 @@ include __DIR__ . '/includes/header.php';
             <!-- Custom Line Items -->
             <div class="form-card" id="section-custom">
                 <div class="form-card-header" onclick="toggleSection('custom')">
-                    <h3><span class="material-icons-round">playlist_add</span> Custom Items</h3>
+                    <h3><span class="material-icons-round">playlist_add</span> <span data-i18n="section_custom">Custom Items</span></h3>
                     <span class="material-icons-round section-toggle">expand_less</span>
                 </div>
                 <div class="form-card-body">
-                    <p class="form-help">Add custom line items for anything not covered above.</p>
+                    <p class="form-help" data-i18n="custom_help">Add custom line items for anything not covered above.</p>
                     <div id="custom-items-list">
                         <?php
                         $customItems = array_filter($items, fn($item) => !empty($item['is_custom']));
@@ -493,7 +495,7 @@ include __DIR__ . '/includes/header.php';
                                 <input type="hidden" name="item_unit[]" value="each">
                                 <div class="form-row">
                                     <div class="form-group form-group-grow">
-                                        <input type="text" name="item_description[]" placeholder="Description" value="<?= e($ci['description']) ?>">
+                                        <input type="text" name="item_description[]" data-i18n-placeholder="placeholder_description" placeholder="Description" value="<?= e($ci['description']) ?>">
                                     </div>
                                     <div class="form-group" style="width: 80px;">
                                         <input type="number" name="item_quantity[]" placeholder="Qty" min="1" step="1" value="<?= e($ci['quantity']) ?>" oninput="recalculate()">
@@ -512,7 +514,7 @@ include __DIR__ . '/includes/header.php';
                         <?php endforeach; endif; ?>
                     </div>
                     <button type="button" class="btn btn-outline btn-sm" onclick="addCustomItem()">
-                        <span class="material-icons-round">add</span> Add Item
+                        <span class="material-icons-round">add</span> <span data-i18n="btn_add_item">Add Item</span>
                     </button>
                 </div>
             </div>
@@ -520,17 +522,17 @@ include __DIR__ . '/includes/header.php';
             <!-- Notes -->
             <div class="form-card" id="section-notes">
                 <div class="form-card-header" onclick="toggleSection('notes')">
-                    <h3><span class="material-icons-round">notes</span> Notes</h3>
+                    <h3><span class="material-icons-round">notes</span> <span data-i18n="section_notes">Notes</span></h3>
                     <span class="material-icons-round section-toggle">expand_less</span>
                 </div>
                 <div class="form-card-body">
                     <div class="form-group">
-                        <label for="notes">Notes for Client</label>
-                        <textarea id="notes" name="notes" rows="3" placeholder="Notes that will appear on the estimate..."><?= e($estimate['notes'] ?? '') ?></textarea>
+                        <label for="notes" data-i18n="label_notes_client">Notes for Client</label>
+                        <textarea id="notes" name="notes" rows="3" data-i18n-placeholder="placeholder_notes" placeholder="Notes that will appear on the estimate..."><?= e($estimate['notes'] ?? '') ?></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="internal-notes">Internal Notes <small>(not shown on estimate)</small></label>
-                        <textarea id="internal-notes" name="internal_notes" rows="2" placeholder="Private notes..."><?= e($estimate['internal_notes'] ?? '') ?></textarea>
+                        <label for="internal-notes" data-i18n="label_internal_notes">Internal Notes <small data-i18n="hint_internal_notes">(not shown on estimate)</small></label>
+                        <textarea id="internal-notes" name="internal_notes" rows="2" data-i18n-placeholder="placeholder_internal" placeholder="Private notes..."><?= e($estimate['internal_notes'] ?? '') ?></textarea>
                     </div>
                 </div>
             </div>
@@ -539,21 +541,21 @@ include __DIR__ . '/includes/header.php';
         <!-- Right Column: Summary -->
         <div class="form-sidebar">
             <div class="summary-card sticky">
-                <h3>Cost Summary</h3>
+                <h3 data-i18n="cost_summary">Cost Summary</h3>
 
                 <!-- Auto-calculated line items -->
                 <div id="summary-items" class="summary-items">
-                    <p class="summary-empty">Enter pool dimensions to see cost breakdown</p>
+                    <p class="summary-empty" data-i18n="summary_empty">Enter pool dimensions to see cost breakdown</p>
                 </div>
 
                 <div class="summary-totals">
                     <div class="summary-line">
-                        <span>Subtotal</span>
+                        <span data-i18n="label_subtotal">Subtotal</span>
                         <span id="summary-subtotal">$0.00</span>
                     </div>
                     <div class="summary-line">
                         <label class="summary-line-input">
-                            <span>Discount</span>
+                            <span data-i18n="label_discount">Discount</span>
                             <div class="input-with-suffix">
                                 <input type="number" name="discount_percent" id="discount-percent" 
                                        min="0" max="100" step="0.5" value="<?= e($estimate['discount_percent'] ?? '0') ?>"
@@ -565,7 +567,7 @@ include __DIR__ . '/includes/header.php';
                     </div>
                     <div class="summary-line">
                         <label class="summary-line-input">
-                            <span>Tax</span>
+                            <span data-i18n="label_tax">Tax</span>
                             <div class="input-with-suffix">
                                 <input type="number" name="tax_rate" id="tax-rate" 
                                        min="0" max="30" step="0.25" 
@@ -577,19 +579,19 @@ include __DIR__ . '/includes/header.php';
                         <span id="summary-tax">$0.00</span>
                     </div>
                     <div class="summary-line summary-total">
-                        <span>Total</span>
+                        <span data-i18n="label_total">Total</span>
                         <span id="summary-total">$0.00</span>
                     </div>
                 </div>
 
                 <!-- Status -->
                 <div class="form-group" style="margin-top: 1rem;">
-                    <label for="estimate-status">Status</label>
+                    <label for="estimate-status" data-i18n="label_status">Status</label>
                     <select name="status" id="estimate-status">
-                        <option value="draft" <?= ($estimate['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Draft</option>
-                        <option value="sent" <?= ($estimate['status'] ?? '') === 'sent' ? 'selected' : '' ?>>Sent</option>
-                        <option value="approved" <?= ($estimate['status'] ?? '') === 'approved' ? 'selected' : '' ?>>Approved</option>
-                        <option value="rejected" <?= ($estimate['status'] ?? '') === 'rejected' ? 'selected' : '' ?>>Rejected</option>
+                        <option value="draft" data-i18n="status_draft" <?= ($estimate['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Draft</option>
+                        <option value="sent" data-i18n="status_sent" <?= ($estimate['status'] ?? '') === 'sent' ? 'selected' : '' ?>>Sent</option>
+                        <option value="approved" data-i18n="status_approved" <?= ($estimate['status'] ?? '') === 'approved' ? 'selected' : '' ?>>Approved</option>
+                        <option value="rejected" data-i18n="status_rejected" <?= ($estimate['status'] ?? '') === 'rejected' ? 'selected' : '' ?>>Rejected</option>
                     </select>
                 </div>
 
@@ -597,19 +599,19 @@ include __DIR__ . '/includes/header.php';
                 <div class="summary-actions">
                     <button type="submit" class="btn btn-primary btn-block">
                         <span class="material-icons-round">save</span>
-                        Save Estimate
+                        <span data-i18n="btn_save_estimate">Save Estimate</span>
                     </button>
                     <?php if ($id > 0): ?>
                         <div class="btn-group-row">
                             <a href="print-estimate.php?id=<?= $id ?>" target="_blank" class="btn btn-outline btn-sm">
-                                <span class="material-icons-round">print</span> Print / PDF
+                                <span class="material-icons-round">print</span> <span data-i18n="btn_print_pdf">Print / PDF</span>
                             </a>
                             <a href="estimate.php?id=<?= $id ?>&duplicate=1" class="btn btn-outline btn-sm">
-                                <span class="material-icons-round">content_copy</span> Duplicate
+                                <span class="material-icons-round">content_copy</span> <span data-i18n="btn_duplicate">Duplicate</span>
                             </a>
                             <button type="button" class="btn btn-outline btn-sm btn-danger-text" 
                                     onclick="confirmDelete(<?= $id ?>, 'estimate')">
-                                <span class="material-icons-round">delete</span> Delete
+                                <span class="material-icons-round">delete</span> <span data-i18n="btn_delete">Delete</span>
                             </button>
                         </div>
                     <?php endif; ?>
@@ -644,11 +646,11 @@ include __DIR__ . '/includes/header.php';
 <!-- Mobile floating summary bar -->
 <div class="mobile-summary-bar" id="mobile-summary">
     <div class="mobile-summary-total">
-        <span>Total:</span>
+        <span data-i18n="mobile_total">Total:</span>
         <span id="mobile-total">$0.00</span>
     </div>
     <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('estimate-form').submit()">
-        <span class="material-icons-round">save</span> Save
+        <span class="material-icons-round">save</span> <span data-i18n="btn_save">Save</span>
     </button>
 </div>
 

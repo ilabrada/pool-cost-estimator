@@ -70,8 +70,11 @@ function confirmDelete(id, type) {
     const message = document.getElementById('confirm-message');
     const actionBtn = document.getElementById('confirm-action');
 
-    title.textContent = 'Delete ' + type.charAt(0).toUpperCase() + type.slice(1);
-    message.textContent = `Are you sure you want to delete this ${type}? This action cannot be undone.`;
+    const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+    title.textContent = (typeof i18n === 'function' ? i18n('confirm_delete_title') : 'Delete') + ' ' + typeLabel;
+    message.textContent = typeof i18n === 'function'
+        ? i18n('confirm_delete_msg', { type })
+        : `Are you sure you want to delete this ${type}? This action cannot be undone.`;
 
     modal.classList.add('show');
 
@@ -109,6 +112,15 @@ let POOL_SHAPE_LABELS = {
     'oval':        'Oval',
     'freeform':    'Freeform',
 };
+
+function getShapeLabel(shape) {
+    if (typeof i18n === 'function') {
+        const key = 'shape_' + shape.replace('-', '_');
+        const translated = i18n(key);
+        if (translated !== key) return translated;
+    }
+    return POOL_SHAPE_LABELS[shape] || shape;
+}
 
 function openShapePreview() {
     const select = document.getElementById('pool-shape');
@@ -156,7 +168,7 @@ function navigateGallery(direction) {
 function updateGalleryImage(shape, images) {
     const img = document.getElementById('shape-preview-img');
     const title = document.getElementById('shape-preview-title');
-    const label = POOL_SHAPE_LABELS[shape] || 'Pool Shape';
+    const label = getShapeLabel(shape);
     img.src = images[currentImageIndex];
     img.alt = `${label} pool example ${currentImageIndex + 1}`;
     title.textContent = `${label} Pool — Shape Example (${currentImageIndex + 1} of ${images.length})`;
@@ -308,13 +320,13 @@ function addCustomItem() {
         <input type="hidden" name="item_unit[]" value="each">
         <div class="form-row">
             <div class="form-group form-group-grow">
-                <input type="text" name="item_description[]" placeholder="Description" required>
+                <input type="text" name="item_description[]" placeholder="${typeof i18n === 'function' ? i18n('placeholder_description') : 'Description'}" required>
             </div>
             <div class="form-group" style="width: 80px;">
-                <input type="number" name="item_quantity[]" placeholder="Qty" min="1" step="1" value="1" oninput="updateCustomItemTotal(this); recalculate()">
+                <input type="number" name="item_quantity[]" placeholder="${typeof i18n === 'function' ? i18n('placeholder_qty') : 'Qty'}" min="1" step="1" value="1" oninput="updateCustomItemTotal(this); recalculate()">
             </div>
             <div class="form-group" style="width: 120px;">
-                <input type="number" name="item_unit_price[]" placeholder="Unit Price" min="0" step="0.01" value="0" oninput="updateCustomItemTotal(this); recalculate()">
+                <input type="number" name="item_unit_price[]" placeholder="${typeof i18n === 'function' ? i18n('placeholder_unit_price') : 'Unit Price'}" min="0" step="0.01" value="0" oninput="updateCustomItemTotal(this); recalculate()">
             </div>
             <div class="form-group" style="width: 120px;">
                 <input type="number" name="item_total[]" readonly class="item-line-total" value="0">
@@ -646,21 +658,21 @@ function updateSummaryDisplay(items, currency) {
     if (!container) return;
 
     if (items.length === 0) {
-        container.innerHTML = '<p class="summary-empty">Enter pool dimensions to see cost breakdown</p>';
+        container.innerHTML = '<p class="summary-empty">' + (typeof i18n === 'function' ? i18n('summary_empty') : 'Enter pool dimensions to see cost breakdown') + '</p>';
         return;
     }
 
     let html = '';
     const categoryLabels = {
-        'excavation': 'Excavation',
-        'shell': 'Pool Shell',
-        'finish': 'Interior Finish',
-        'equipment': 'Equipment & Plumbing',
-        'tile': 'Tile & Coping',
-        'features': 'Features & Add-ons',
-        'deck': 'Deck',
-        'fence': 'Fencing',
-        'other': 'Other',
+        'excavation': typeof i18n === 'function' ? i18n('cat_excavation') : 'Excavation',
+        'shell':      typeof i18n === 'function' ? i18n('cat_shell')      : 'Pool Shell',
+        'finish':     typeof i18n === 'function' ? i18n('cat_finish')     : 'Interior Finish',
+        'equipment':  typeof i18n === 'function' ? i18n('cat_equipment')  : 'Equipment & Plumbing',
+        'tile':       typeof i18n === 'function' ? i18n('cat_tile')       : 'Tile & Coping',
+        'features':   typeof i18n === 'function' ? i18n('cat_features')   : 'Features & Add-ons',
+        'deck':       typeof i18n === 'function' ? i18n('cat_deck')       : 'Deck',
+        'fence':      typeof i18n === 'function' ? i18n('cat_fence')      : 'Fencing',
+        'other':      typeof i18n === 'function' ? i18n('cat_other')      : 'Other',
     };
 
     let currentCat = '';
@@ -686,7 +698,7 @@ function updateSummaryDisplay(items, currency) {
             const total = parseFloat(row.querySelector('[name="item_total[]"]')?.value) || 0;
             if (desc && total > 0) {
                 if (!hasCustom) {
-                    html += `<div class="summary-category">Custom Items</div>`;
+                    html += `<div class="summary-category">${typeof i18n === 'function' ? i18n('cat_custom') : 'Custom Items'}</div>`;
                     hasCustom = true;
                 }
                 html += `
@@ -764,5 +776,12 @@ document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowLeft') navigateGallery(-1);
         else if (e.key === 'ArrowRight') navigateGallery(1);
         else if (e.key === 'Escape') closeShapePreview();
+    }
+});
+
+// Re-render dynamic cost summary when language changes
+document.addEventListener('i18n:applied', () => {
+    if (typeof recalculate === 'function' && typeof PRICING !== 'undefined') {
+        recalculate();
     }
 });

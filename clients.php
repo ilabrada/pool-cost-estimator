@@ -87,9 +87,9 @@ include __DIR__ . '/includes/header.php';
 <?php if ($action === 'list'): ?>
     <!-- Client List -->
     <div class="section-header">
-        <h2>All Clients</h2>
+        <h2 data-i18n="all_clients">All Clients</h2>
         <a href="clients.php?action=new" class="btn btn-primary btn-sm">
-            <span class="material-icons-round">person_add</span> New Client
+            <span class="material-icons-round">person_add</span> <span data-i18n="btn_new_client">New Client</span>
         </a>
     </div>
 
@@ -97,7 +97,7 @@ include __DIR__ . '/includes/header.php';
         <form method="GET" class="search-form">
             <div class="search-input-group">
                 <span class="material-icons-round">search</span>
-                <input type="text" name="search" placeholder="Search clients..." 
+                <input type="text" name="search" data-i18n-placeholder="search_clients" placeholder="Search clients..." 
                        value="<?= e($_GET['search'] ?? '') ?>">
                 <?php if (!empty($_GET['search'])): ?>
                     <a href="clients.php" class="search-clear">&times;</a>
@@ -117,10 +117,10 @@ include __DIR__ . '/includes/header.php';
     <?php if (empty($clients)): ?>
         <div class="empty-state">
             <span class="material-icons-round">people</span>
-            <h3>No clients yet</h3>
-            <p>Add your first client to get started.</p>
+            <h3 data-i18n="no_clients_yet">No clients yet</h3>
+            <p data-i18n="no_clients_msg">Add your first client to get started.</p>
             <a href="clients.php?action=new" class="btn btn-primary">
-                <span class="material-icons-round">person_add</span> Add Client
+                <span class="material-icons-round">person_add</span> <span data-i18n="btn_add_client">Add Client</span>
             </a>
         </div>
     <?php else: ?>
@@ -165,7 +165,7 @@ include __DIR__ . '/includes/header.php';
             <h3><span class="material-icons-round">person</span> <?= e($client['name']) ?></h3>
             <div>
                 <a href="clients.php?id=<?= $client['id'] ?>&action=edit" class="btn btn-outline btn-sm">
-                    <span class="material-icons-round">edit</span> Edit
+                    <span class="material-icons-round">edit</span> <span data-i18n="btn_edit">Edit</span>
                 </a>
             </div>
         </div>
@@ -196,11 +196,11 @@ include __DIR__ . '/includes/header.php';
                     </div>
                 <?php endif; ?>
                 <div class="detail-item">
-                    <span class="detail-label">Account Type</span>
-                    <span class="detail-value"><?= ($client['tier'] ?? 'priority') === 'priority' ? 'Priority' : 'Standard' ?></span>
+                    <span class="detail-label" data-i18n="label_account_type">Account Type</span>
+                    <span class="detail-value"><?= ($client['tier'] ?? 'priority') === 'priority' ? '<span data-i18n="tier_priority">Priority</span>' : '<span data-i18n="tier_standard">Standard</span>' ?></span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Created</span>
+                    <span class="detail-label" data-i18n="label_created">Created</span>
                     <span class="detail-value"><?= formatDate($client['created_at']) ?></span>
                 </div>
             </div>
@@ -212,12 +212,12 @@ include __DIR__ . '/includes/header.php';
     <div class="section-header">
         <h2>Estimates (<?= count($clientEstimates) ?>)</h2>
         <a href="estimate.php?client_id=<?= $client['id'] ?>" class="btn btn-primary btn-sm">
-            <span class="material-icons-round">add</span> New Estimate
+            <span class="material-icons-round">add</span> <span data-i18n="btn_new_estimate_for">New Estimate</span>
         </a>
     </div>
 
     <?php if (empty($clientEstimates)): ?>
-        <p class="text-muted">No estimates for this client yet.</p>
+        <p class="text-muted" data-i18n="no_estimates_client">No estimates for this client yet.</p>
     <?php else: ?>
         <div class="estimate-list">
             <?php foreach ($clientEstimates as $est): ?>
@@ -248,49 +248,49 @@ include __DIR__ . '/includes/header.php';
         <div class="form-card">
             <div class="form-card-body">
                 <div class="form-group">
-                    <label for="name">Name *</label>
+                    <label for="name" data-i18n="label_name">Name *</label>
                     <input type="text" id="name" name="name" required 
                            value="<?= e($client['name'] ?? $_POST['name'] ?? '') ?>"
                            placeholder="Full name">
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="phone">Phone</label>
+                        <label for="phone" data-i18n="label_phone">Phone</label>
                         <input type="tel" id="phone" name="phone" 
                                value="<?= e($client['phone'] ?? $_POST['phone'] ?? '') ?>"
                                placeholder="(555) 123-4567">
                     </div>
                     <div class="form-group">
-                        <label for="email">Email</label>
+                        <label for="email" data-i18n="label_email">Email</label>
                         <input type="email" id="email" name="email" 
                                value="<?= e($client['email'] ?? $_POST['email'] ?? '') ?>"
                                placeholder="client@email.com">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="address">Address</label>
+                    <label for="address" data-i18n="label_address">Address</label>
                     <textarea id="address" name="address" rows="2" 
                               placeholder="Street address, city, state, zip"><?= e($client['address'] ?? $_POST['address'] ?? '') ?></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="notes">Notes</label>
+                    <label for="notes" data-i18n="label_notes">Notes</label>
                     <textarea id="notes" name="notes" rows="3" 
                               placeholder="Any additional notes..."><?= e($client['notes'] ?? $_POST['notes'] ?? '') ?></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="tier">Account Type</label>
+                    <label for="tier" data-i18n="label_account_type">Account Type</label>
                     <select id="tier" name="tier" class="form-control">
-                        <option value="priority" <?= ($client['tier'] ?? 'priority') === 'priority' ? 'selected' : '' ?>>Priority</option>
-                        <option value="standard" <?= ($client['tier'] ?? '') === 'standard' ? 'selected' : '' ?>>Standard</option>
+                        <option value="priority" data-i18n="tier_priority" <?= ($client['tier'] ?? 'priority') === 'priority' ? 'selected' : '' ?>>Priority</option>
+                        <option value="standard" data-i18n="tier_standard" <?= ($client['tier'] ?? '') === 'standard' ? 'selected' : '' ?>>Standard</option>
                     </select>
                 </div>
             </div>
         </div>
 
         <div class="form-actions">
-            <a href="clients.php" class="btn btn-secondary">Cancel</a>
+            <a href="clients.php" class="btn btn-secondary" data-i18n="btn_cancel">Cancel</a>
             <button type="submit" class="btn btn-primary">
-                <span class="material-icons-round">save</span> Save Client
+                <span class="material-icons-round">save</span> <span data-i18n="btn_save_client">Save Client</span>
             </button>
         </div>
 
@@ -298,7 +298,7 @@ include __DIR__ . '/includes/header.php';
             <div style="margin-top: 2rem; text-align: right;">
                 <button type="button" class="btn btn-outline btn-danger-text btn-sm" 
                         onclick="confirmDelete(<?= $client['id'] ?>, 'client')">
-                    <span class="material-icons-round">delete</span> Delete Client
+                    <span class="material-icons-round">delete</span> <span data-i18n="btn_delete_client">Delete Client</span>
                 </button>
             </div>
         <?php endif; ?>

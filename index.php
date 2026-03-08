@@ -67,7 +67,7 @@ $businessName = getSetting('business_name', APP_NAME);
             <div class="login-header">
                 <span class="login-logo">🏊</span>
                 <h1><?= e($businessName) ?></h1>
-                <p>Pool Cost Estimator</p>
+                <p data-i18n="login_subtitle">Pool Cost Estimator</p>
             </div>
 
             <?php if ($error): ?>
@@ -75,12 +75,12 @@ $businessName = getSetting('business_name', APP_NAME);
             <?php endif; ?>
 
             <?php if ($timeout): ?>
-                <div class="alert alert-warning">Your session has expired. Please log in again.</div>
+                <div class="alert alert-warning" data-i18n="alert_session_expired">Your session has expired. Please log in again.</div>
             <?php endif; ?>
 
             <form method="POST" action="index.php" class="login-form">
                 <div class="pin-input-group">
-                    <label for="pin">Enter PIN to access</label>
+                    <label for="pin" data-i18n="label_enter_pin">Enter PIN to access</label>
                     <input type="password" id="pin" name="pin" 
                            inputmode="numeric" pattern="[0-9]*"
                            placeholder="••••••" 
@@ -89,12 +89,25 @@ $businessName = getSetting('business_name', APP_NAME);
                            required
                            autocomplete="current-password">
                 </div>
-                <button type="submit" class="btn btn-primary btn-block btn-lg">
+                <button type="submit" class="btn btn-primary btn-block btn-lg" data-i18n="btn_unlock">
                     Unlock
                 </button>
             </form>
         </div>
         <p class="login-footer">Pool Cost Estimator v<?= APP_VERSION ?></p>
+    </div>
+
+    <script src="assets/js/i18n/en.js"></script>
+    <script src="assets/js/i18n/es.js"></script>
+    <script src="assets/js/i18n/i18n.js"></script>
+
+    <!-- Language toggle for login page -->
+    <div class="login-lang-toggle">
+        <span class="material-icons-round lang-icon">translate</span>
+        <select id="lang-select" class="lang-select" aria-label="Select language">
+            <option value="en">EN</option>
+            <option value="es">ES</option>
+        </select>
     </div>
 </body>
 </html>

@@ -35,9 +35,16 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
         <h1 class="header-title"><?= e($pageTitle) ?></h1>
     </div>
     <div class="header-right">
+        <div class="lang-toggle" title="Language / Idioma">
+            <span class="material-icons-round lang-icon">translate</span>
+            <select id="lang-select" class="lang-select" aria-label="Select language">
+                <option value="en">EN</option>
+                <option value="es">ES</option>
+            </select>
+        </div>
         <a href="estimate.php" class="btn btn-primary btn-sm header-new-btn">
             <span class="material-icons-round">add</span>
-            <span class="btn-label">New Estimate</span>
+            <span class="btn-label" data-i18n="header_new_estimate">New Estimate</span>
         </a>
     </div>
 </header>
@@ -53,32 +60,32 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
         <li class="<?= $currentPage === 'dashboard' ? 'active' : '' ?>">
             <a href="dashboard.php">
                 <span class="material-icons-round">dashboard</span>
-                <span>Dashboard</span>
+                <span data-i18n="nav_dashboard">Dashboard</span>
             </a>
         </li>
         <li class="<?= $currentPage === 'estimate' ? 'active' : '' ?>">
             <a href="estimate.php">
                 <span class="material-icons-round">add_circle</span>
-                <span>New Estimate</span>
+                <span data-i18n="nav_new_estimate">New Estimate</span>
             </a>
         </li>
         <li class="<?= $currentPage === 'clients' ? 'active' : '' ?>">
             <a href="clients.php">
                 <span class="material-icons-round">people</span>
-                <span>Clients</span>
+                <span data-i18n="nav_clients">Clients</span>
             </a>
         </li>
         <li class="<?= $currentPage === 'audit-log' ? 'active' : '' ?>">
             <a href="audit-log.php">
                 <span class="material-icons-round">history</span>
-                <span>Audit Log</span>
+                <span data-i18n="nav_audit_log">Audit Log</span>
             </a>
         </li>
         <?php if (isAdmin()): ?>
         <li class="<?= $currentPage === 'settings' ? 'active' : '' ?>">
             <a href="settings.php">
                 <span class="material-icons-round">settings</span>
-                <span>Settings</span>
+                <span data-i18n="nav_settings">Settings</span>
             </a>
         </li>
         <?php endif; ?>
@@ -86,7 +93,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
         <li>
             <a href="logout.php">
                 <span class="material-icons-round">logout</span>
-                <span>Logout</span>
+                <span data-i18n="nav_logout">Logout</span>
             </a>
         </li>
     </ul>
@@ -96,24 +103,24 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 <nav class="bottom-nav">
     <a href="dashboard.php" class="bottom-nav-item <?= $currentPage === 'dashboard' ? 'active' : '' ?>">
         <span class="material-icons-round">dashboard</span>
-        <span>Home</span>
+        <span data-i18n="nav_home">Home</span>
     </a>
     <a href="estimate.php" class="bottom-nav-item <?= $currentPage === 'estimate' ? 'active' : '' ?>">
         <span class="material-icons-round">add_circle</span>
-        <span>Estimate</span>
+        <span data-i18n="nav_estimate">Estimate</span>
     </a>
     <a href="clients.php" class="bottom-nav-item <?= $currentPage === 'clients' ? 'active' : '' ?>">
         <span class="material-icons-round">people</span>
-        <span>Clients</span>
+        <span data-i18n="nav_clients">Clients</span>
     </a>
     <a href="audit-log.php" class="bottom-nav-item <?= $currentPage === 'audit-log' ? 'active' : '' ?>">
         <span class="material-icons-round">history</span>
-        <span>Log</span>
+        <span data-i18n="nav_log">Log</span>
     </a>
     <?php if (isAdmin()): ?>
     <a href="settings.php" class="bottom-nav-item <?= $currentPage === 'settings' ? 'active' : '' ?>">
         <span class="material-icons-round">settings</span>
-        <span>Settings</span>
+        <span data-i18n="nav_settings">Settings</span>
     </a>
     <?php endif; ?>
 </nav>
