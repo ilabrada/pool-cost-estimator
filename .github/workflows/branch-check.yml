@@ -1,0 +1,17 @@
+name: "Branch Merge Validator"
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify PR Source
+        if: github.head_ref != 'development'
+        run: |
+          echo "ERROR: Merges to 'main' are only allowed from the 'development' branch."
+          echo "Current source branch: ${{ github.head_ref }}"
+          exit 1
