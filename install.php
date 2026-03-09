@@ -42,6 +42,8 @@ if ($step === '2') {
 
         // 1. Apply base schema (CREATE TABLE IF NOT EXISTS — always safe)
         $pdo->exec(file_get_contents(__DIR__ . '/sql/schema.sql'));
+        // schema.sql sets AUTOCOMMIT=0; restore it so migration tracking INSERTs are committed
+        $pdo->exec('SET autocommit = 1');
 
         // 2. Run any pending migrations from sql/migrations/*.sql
         $migrationDir = __DIR__ . '/sql/migrations';
