@@ -22,7 +22,7 @@ include __DIR__ . '/includes/header.php';
         </div>
         <div class="stat-info">
             <span class="stat-value"><?= $stats['total_estimates'] ?></span>
-            <span class="stat-label">Total Estimates</span>
+            <span class="stat-label" data-i18n="stat_total_estimates">Total Estimates</span>
         </div>
     </div>
     <div class="stat-card">
@@ -31,7 +31,7 @@ include __DIR__ . '/includes/header.php';
         </div>
         <div class="stat-info">
             <span class="stat-value"><?= $stats['draft_estimates'] ?></span>
-            <span class="stat-label">Drafts</span>
+            <span class="stat-label" data-i18n="stat_drafts">Drafts</span>
         </div>
     </div>
     <div class="stat-card">
@@ -40,7 +40,7 @@ include __DIR__ . '/includes/header.php';
         </div>
         <div class="stat-info">
             <span class="stat-value"><?= $stats['approved_estimates'] ?></span>
-            <span class="stat-label">Approved</span>
+            <span class="stat-label" data-i18n="stat_approved">Approved</span>
         </div>
     </div>
     <div class="stat-card">
@@ -49,35 +49,35 @@ include __DIR__ . '/includes/header.php';
         </div>
         <div class="stat-info">
             <span class="stat-value"><?= $stats['total_clients'] ?></span>
-            <span class="stat-label">Clients</span>
+            <span class="stat-label" data-i18n="stat_clients">Clients</span>
         </div>
     </div>
 </div>
 
 <!-- Quick Actions -->
 <div class="section-header">
-    <h2>Quick Actions</h2>
+    <h2 data-i18n="quick_actions">Quick Actions</h2>
 </div>
 <div class="quick-actions">
     <a href="estimate.php" class="quick-action-btn">
         <span class="material-icons-round">add_circle</span>
-        <span>New Estimate</span>
+        <span data-i18n="quick_new_estimate">New Estimate</span>
     </a>
     <a href="clients.php?action=new" class="quick-action-btn">
         <span class="material-icons-round">person_add</span>
-        <span>New Client</span>
+        <span data-i18n="quick_new_client">New Client</span>
     </a>
     <a href="dashboard.php?view=all" class="quick-action-btn">
         <span class="material-icons-round">list_alt</span>
-        <span>All Estimates</span>
+        <span data-i18n="quick_all_estimates">All Estimates</span>
     </a>
 </div>
 
 <!-- Recent Estimates -->
 <div class="section-header">
-    <h2>Recent Estimates</h2>
+    <h2 data-i18n="recent_estimates">Recent Estimates</h2>
     <?php if ($stats['total_estimates'] > 0): ?>
-        <a href="dashboard.php?view=all" class="btn btn-sm btn-outline">View All</a>
+        <a href="dashboard.php?view=all" class="btn btn-sm btn-outline" data-i18n="view_all">View All</a>
     <?php endif; ?>
 </div>
 
@@ -88,18 +88,18 @@ include __DIR__ . '/includes/header.php';
             <input type="hidden" name="view" value="all">
             <div class="search-input-group">
                 <span class="material-icons-round">search</span>
-                <input type="text" name="search" placeholder="Search estimates or clients..." 
+                <input type="text" name="search" data-i18n-placeholder="search_estimates" placeholder="Search estimates or clients..." 
                        value="<?= e($_GET['search'] ?? '') ?>">
                 <?php if (!empty($_GET['search'])): ?>
                     <a href="dashboard.php?view=all" class="search-clear">&times;</a>
                 <?php endif; ?>
             </div>
             <select name="status" onchange="this.form.submit()">
-                <option value="">All Status</option>
-                <option value="draft" <?= ($_GET['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Draft</option>
-                <option value="sent" <?= ($_GET['status'] ?? '') === 'sent' ? 'selected' : '' ?>>Sent</option>
-                <option value="approved" <?= ($_GET['status'] ?? '') === 'approved' ? 'selected' : '' ?>>Approved</option>
-                <option value="rejected" <?= ($_GET['status'] ?? '') === 'rejected' ? 'selected' : '' ?>>Rejected</option>
+                <option value="" data-i18n="filter_all_status">All Status</option>
+                <option value="draft" data-i18n="filter_draft" <?= ($_GET['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Draft</option>
+                <option value="sent" data-i18n="filter_sent" <?= ($_GET['status'] ?? '') === 'sent' ? 'selected' : '' ?>>Sent</option>
+                <option value="approved" data-i18n="filter_approved" <?= ($_GET['status'] ?? '') === 'approved' ? 'selected' : '' ?>>Approved</option>
+                <option value="rejected" data-i18n="filter_rejected" <?= ($_GET['status'] ?? '') === 'rejected' ? 'selected' : '' ?>>Rejected</option>
             </select>
         </form>
     </div>
@@ -118,11 +118,11 @@ endif; ?>
 <?php if (empty($estimates)): ?>
     <div class="empty-state">
         <span class="material-icons-round">description</span>
-        <h3>No estimates yet</h3>
-        <p>Create your first pool estimate to get started.</p>
+        <h3 data-i18n="no_estimates_yet">No estimates yet</h3>
+        <p data-i18n="no_estimates_msg">Create your first pool estimate to get started.</p>
         <a href="estimate.php" class="btn btn-primary">
             <span class="material-icons-round">add</span>
-            Create Estimate
+            <span data-i18n="create_estimate">Create Estimate</span>
         </a>
     </div>
 <?php else: ?>

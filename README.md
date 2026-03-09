@@ -42,17 +42,15 @@ In your hosting panel (e.g., Hostinger hPanel):
 
 ### 2. Configure Database Credentials
 
-Edit `includes/config.php` and update:
+**Do not edit `includes/config.php` directly.** It contains `{{TOKEN}}` placeholders that are replaced automatically by the CI/CD pipeline on deployment (see [CI/CD & Token Replacement](#cicd--token-replacement)).
 
-```php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'your_database_name');
-define('DB_USER', 'your_database_user');
-define('DB_PASS', 'your_database_password');
-```
-### iWebFusion Hosting (Deployment Settings)
+For local development, create `includes/config.local.php` instead — see [Local Development with MAMP](#local-development-with-mamp) below.
 
-Use these database credentials on iWebFusion:
+For production credentials, store them as [GitHub Actions secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) — never commit them to the repository.
+
+### iWebFusion Hosting (Default Values)
+
+Reference values for the iWebFusion environment (set the actual password in GitHub secrets, not here):
 
 ```php
 define('DB_HOST', 'localhost');
@@ -61,7 +59,7 @@ define('DB_USER', 'ttshosti_root');
 define('DB_PASS', 'lung-widow-hacker');
 ```
 
-Also set your timezone:
+Also confirm the timezone:
 ```php
 date_default_timezone_set('America/New_York');
 ```
@@ -81,6 +79,8 @@ Visit `https://yourdomain.com/install.php` in your browser:
 ### 5. Secure Installation
 
 After setup, **delete `install.php`** from your server for security.
+
+> **Future migrations:** Use `migrate.php` (requires admin login) to apply new SQL scripts without going through the full installation wizard again. See [Running Migrations](#running-migrations).
 
 ### 6. Login
 
@@ -123,23 +123,24 @@ Open the MAMP application and click **Start Servers**. Both the Apache and MySQL
 4. Name the database `pool_estimator` and set collation to `utf8mb4_unicode_ci`
 5. Click **Create**
 
-### 5. Update `includes/config.php`
+### 5. Create `includes/config.local.php`
 
-Change the database block to use MAMP's default credentials and port:
+`config.php` contains CI/CD token placeholders (`{{DB_HOST}}` etc.) and must not be edited. Instead, create `includes/config.local.php` with your local credentials — this file is gitignored and loaded automatically when present:
 
 ```php
+<?php
+// Local development credentials — never commit this file.
 define('DB_HOST', 'localhost');
 define('DB_PORT', '8889');        // MAMP uses port 8889 for MySQL
 define('DB_NAME', 'pool_estimator');
 define('DB_USER', 'root');
 define('DB_PASS', 'root');        // MAMP default password
-```
 
-Also enable error display when developing locally:
-
-```php
+// Enable verbose errors locally
 ini_set('display_errors', '1');
 ```
+
+The constants defined here take priority over the token placeholders in `config.php` via `defined() || define()` guards, so the `{{TOKEN}}` strings are never evaluated.
 
 ### 6. Run the Installer
 
@@ -149,7 +150,53 @@ Visit [http://localhost:8888/pool-cost-estimator/install.php](http://localhost:8
 
 Go to [http://localhost:8888/pool-cost-estimator/](http://localhost:8888/pool-cost-estimator/) and log in with the PIN you just set.
 
-> **Before deploying to Hostinger**, revert `DB_PORT` to `3306`, update the credentials to your Hostinger DB values, and set `display_errors` back to `'0'`.
+> No manual revert needed before deploying. `config.local.php` only exists on your machine; the CI/CD pipeline works directly from the token placeholders in `config.php`.
+
+---
+
+## CI/CD & Token Replacement
+
+This project uses GitHub Actions to deploy to cPanel via FTP. Credentials are stored as [repository secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) and injected at deploy time using `sed`:
+
+| Branch | Workflow | Destination |
+|--------|----------|-------------|
+| `main` | `.github/workflows/deploy.yml` | Production (`/`) |
+| `development` | `.github/workflows/deploy-dev.yml` | QA (`/qa/`) |
+
+The deploy step replaces the `{{TOKEN}}` placeholders in `includes/config.php` with the real values before uploading:
+
+```yaml
+- name: Replace config tokens
+  run: |
+    sed -i 's/{{DB_HOST}}/${{ secrets.IWEBFUSION_DB_HOST }}/g' includes/config.php
+    sed -i 's/{{DB_NAME}}/${{ secrets.IWEBFUSION_DB_NAME }}/g' includes/config.php
+    ...
+```
+
+This means:
+- `config.php` in the repository always contains only placeholders — **never real credentials**
+- Local development uses `config.local.php` (gitignored) to supply the same constants before the placeholders are evaluated
+- Production/QA environments receive a fully resolved `config.php` only during the deploy run
+
+### Setting up GitHub Secrets
+
+Go to your repository → **Settings → Secrets and variables → Actions** and add:
+
+| Secret name | Description |
+|---|---|
+| `IWEBFUSION_DB_HOST` | Production DB host |
+| `IWEBFUSION_DB_NAME` | Production DB name |
+| `IWEBFUSION_DB_USERNAME` | Production DB user |
+| `IWEBFUSION_DB_PASS` | Production DB password |
+| `IWEBFUSION_DB_PORT` | Production DB port |
+| `IWEBFUSION_DEV_DB_HOST` | Dev/QA DB host |
+| `IWEBFUSION_DEV_DB_NAME` | Dev/QA DB name |
+| `IWEBFUSION_DEV_DB_USERNAME` | Dev/QA DB user |
+| `IWEBFUSION_DEV_DB_PASS` | Dev/QA DB password |
+| `IWEBFUSION_DEV_DB_PORT` | Dev/QA DB port |
+| `FTP_SERVER` | FTP host |
+| `FTP_USERNAME` | FTP username |
+| `FTP_PASSWORD` | FTP password |
 
 ---
 
@@ -158,6 +205,7 @@ Go to [http://localhost:8888/pool-cost-estimator/](http://localhost:8888/pool-co
 ```
 ├── index.php                 # Login page
 ├── install.php               # Installation wizard (delete after setup)
+├── migrate.php               # Migration runner for existing installs (requires login)
 ├── dashboard.php             # Main dashboard with estimates list
 ├── estimate.php              # Create/edit estimate form
 ├── clients.php               # Client management (list, add, edit, view)
@@ -169,7 +217,8 @@ Go to [http://localhost:8888/pool-cost-estimator/](http://localhost:8888/pool-co
 ├── manifest.json             # PWA manifest (add to home screen)
 ├── .htaccess                 # Security & caching rules
 ├── includes/
-│   ├── config.php            # Database & app configuration
+│   ├── config.php            # Config with CI/CD token placeholders (committed)
+│   ├── config.local.php      # Local credentials override — gitignored, never committed
 │   ├── db.php                # PDO database connection
 │   ├── functions.php         # All helper functions
 │   ├── auth.php              # Session authentication
@@ -243,6 +292,36 @@ Access the log from the **Audit Log** link in the sidebar. Filter by entity type
 - SQL injection prevented via PDO prepared statements
 - `.htaccess` blocks access to sensitive files
 - Delete `install.php` after setup
+- `migrate.php` is protected by admin session authentication; no credentials are stored in the file itself
+
+## Running Migrations
+
+After the initial installation, apply new SQL migration scripts without re-entering business information or your admin PIN.
+
+### Using the Web UI (recommended)
+
+1. Log in to the app as an admin.
+2. Navigate to `https://yourdomain.com/migrate.php`.
+3. Click **Run Pending Migrations**.
+4. The page shows each file in `sql/migrations/` with its status:
+   - **Applied** — the script ran successfully and was recorded.
+   - **Already applied** — skipped because it was already recorded in the `migrations` table.
+   - **Error** — the script failed; details are shown inline.
+5. Your business information and admin PIN are **never touched** by this process.
+
+### What counts as a pending migration?
+
+Any `.sql` file in `sql/migrations/` whose filename does **not** appear in the `migrations` database table. Files are applied in sorted (alphabetical/numeric) order.
+
+### Adding a new migration
+
+1. Create a new file in `sql/migrations/` following the naming convention: `NNN_description.sql` (e.g. `003_add_promo_codes.sql`).
+2. Write idempotent SQL where possible (use `IF NOT EXISTS`, `IF EXISTS`, etc.).
+3. Deploy the file to the server and run `migrate.php`.
+
+### What about `install.php`?
+
+`install.php` is the **first-time** setup wizard. On an already-configured database, Step 2 now auto-detects the existing setup and redirects directly to the completion screen — it will **never** overwrite your business info or PIN. You can still use `install.php` to reapply the base schema + any pending migrations during first-time setup, then delete it afterward for security.
 
 ## License
 

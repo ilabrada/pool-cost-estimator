@@ -7,6 +7,8 @@
 // SIDEBAR & NAVIGATION
 // ═══════════════════════════════════════════════════════════════════
 
+let currentImageIndex = 0;
+
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.querySelector('.sidebar-overlay');
@@ -68,8 +70,11 @@ function confirmDelete(id, type) {
     const message = document.getElementById('confirm-message');
     const actionBtn = document.getElementById('confirm-action');
 
-    title.textContent = 'Delete ' + type.charAt(0).toUpperCase() + type.slice(1);
-    message.textContent = `Are you sure you want to delete this ${type}? This action cannot be undone.`;
+    const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+    title.textContent = (typeof i18n === 'function' ? i18n('confirm_delete_title') : 'Delete') + ' ' + typeLabel;
+    message.textContent = typeof i18n === 'function'
+        ? i18n('confirm_delete_msg', { type })
+        : `Are you sure you want to delete this ${type}? This action cannot be undone.`;
 
     modal.classList.add('show');
 
@@ -99,15 +104,8 @@ document.addEventListener('keydown', (e) => {
 // POOL SHAPE PREVIEW
 // ═══════════════════════════════════════════════════════════════════
 
-const POOL_SHAPE_IMAGES = {
-    'rectangular': 'assets/img/pool-shapes/rectangular.jpg',
-    'l-shaped':    'assets/img/pool-shapes/l-shaped.jpg',
-    'kidney':      'assets/img/pool-shapes/kidney.jpg',
-    'oval':        'assets/img/pool-shapes/oval.jpg',
-    'freeform':    'assets/img/pool-shapes/freeform.jpg',
-};
-
-const POOL_SHAPE_LABELS = {
+let POOL_SHAPE_IMAGES = {}; // Will be populated dynamically
+let POOL_SHAPE_LABELS = {
     'rectangular': 'Rectangular',
     'l-shaped':    'L-Shaped',
     'kidney':      'Kidney',
@@ -115,22 +113,79 @@ const POOL_SHAPE_LABELS = {
     'freeform':    'Freeform',
 };
 
+function getShapeLabel(shape) {
+    if (typeof i18n === 'function') {
+        const key = 'shape_' + shape.replace('-', '_');
+        const translated = i18n(key);
+        if (translated !== key) return translated;
+    }
+    return POOL_SHAPE_LABELS[shape] || shape;
+}
+
 function openShapePreview() {
     const select = document.getElementById('pool-shape');
-    const shape  = select ? select.value : 'rectangular';
-    const label  = POOL_SHAPE_LABELS[shape] || 'Pool Shape';
-    const src    = POOL_SHAPE_IMAGES[shape] || POOL_SHAPE_IMAGES['rectangular'];
+    const shape = select ? select.value : 'rectangular';
 
-    const img   = document.getElementById('shape-preview-img');
-    const title = document.getElementById('shape-preview-title');
-    if (img)   { img.src = src; img.alt = label + ' pool example'; }
-    if (title) title.textContent = label + ' Pool — Shape Example';
+    // Fetch images for this shape if not already loaded
+    if (!POOL_SHAPE_IMAGES[shape]) {
+        fetch(`api.php?action=list_pool_images`)
+            .then(r => r.json())
+            .then(images => {
+                POOL_SHAPE_IMAGES = images;
+                showShapePreview(shape);
+            })
+            .catch(err => {
+                console.error('Error loading pool images:', err);
+                // Fallback to empty array
+                POOL_SHAPE_IMAGES[shape] = [];
+                showShapePreview(shape);
+            });
+    } else {
+        showShapePreview(shape);
+    }
+}
 
+function showShapePreview(shape) {
+    const images = POOL_SHAPE_IMAGES[shape] || [];
+    currentImageIndex = 0;  // Reset to first image
+    updateGalleryImage(shape, images);
+    updateGalleryIndicators(shape, images);
     document.getElementById('shape-preview-modal')?.classList.add('show');
 }
 
 function closeShapePreview() {
     document.getElementById('shape-preview-modal')?.classList.remove('show');
+}
+
+function navigateGallery(direction) {
+    const select = document.getElementById('pool-shape');
+    const shape = select ? select.value : 'rectangular';
+    const images = POOL_SHAPE_IMAGES[shape] || [];
+    currentImageIndex = (currentImageIndex + direction + images.length) % images.length;  // Wrap around
+    updateGalleryImage(shape, images);
+}
+
+function updateGalleryImage(shape, images) {
+    const img = document.getElementById('shape-preview-img');
+    const title = document.getElementById('shape-preview-title');
+    const label = getShapeLabel(shape);
+    img.src = images[currentImageIndex];
+    img.alt = `${label} pool example ${currentImageIndex + 1}`;
+    title.textContent = `${label} Pool — Shape Example (${currentImageIndex + 1} of ${images.length})`;
+}
+
+function updateGalleryIndicators(shape, images) {
+    const indicators = document.getElementById('gallery-indicators');
+    indicators.innerHTML = '';
+    for (let i = 0; i < images.length; i++) {
+        const dot = document.createElement('span');
+        dot.className = `indicator-dot ${i === currentImageIndex ? 'active' : ''}`;
+        dot.onclick = () => { currentImageIndex = i; updateGalleryImage(shape, images); };  // Allow clicking dots
+        indicators.appendChild(dot);
+    }
+    // Hide indicators/buttons if only one image
+    document.querySelectorAll('.gallery-nav').forEach(btn => btn.style.display = images.length > 1 ? 'block' : 'none');
+    indicators.style.display = images.length > 1 ? 'flex' : 'none';
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -153,6 +208,10 @@ function closeShapePreview() {
             resultsDiv.classList.remove('show');
             // Clear client ID if name changed (new client)
             if (clientIdInput) clientIdInput.value = '';
+            if (pricingFactor !== 1.0) {
+                pricingFactor = 1.0;
+                recalculate();
+            }
             return;
         }
 
@@ -163,7 +222,6 @@ function closeShapePreview() {
                     resultsDiv.innerHTML = '';
                     if (clients.length === 0) {
                         resultsDiv.classList.remove('show');
-                        if (clientIdInput) clientIdInput.value = '';
                         return;
                     }
 
@@ -196,7 +254,7 @@ function closeShapePreview() {
     function selectClient(client) {
         if (clientIdInput) clientIdInput.value = client.id;
         searchInput.value = client.name;
-        
+
         const phoneInput = document.getElementById('client-phone');
         const emailInput = document.getElementById('client-email');
         const addressInput = document.getElementById('client-address');
@@ -204,6 +262,15 @@ function closeShapePreview() {
         if (phoneInput) phoneInput.value = client.phone || '';
         if (emailInput) emailInput.value = client.email || '';
         if (addressInput) addressInput.value = client.address || '';
+
+        // Silently apply client-specific pricing adjustment
+        fetch(`api.php?action=get_client&id=${encodeURIComponent(client.id)}`)
+            .then(r => r.json())
+            .then(data => {
+                pricingFactor = typeof data.pricing_factor === 'number' ? data.pricing_factor : 1.0;
+                recalculate();
+            })
+            .catch(() => { pricingFactor = 1.0; recalculate(); });
     }
 })();
 
@@ -253,13 +320,13 @@ function addCustomItem() {
         <input type="hidden" name="item_unit[]" value="each">
         <div class="form-row">
             <div class="form-group form-group-grow">
-                <input type="text" name="item_description[]" placeholder="Description" required>
+                <input type="text" name="item_description[]" placeholder="${typeof i18n === 'function' ? i18n('placeholder_description') : 'Description'}" required>
             </div>
             <div class="form-group" style="width: 80px;">
-                <input type="number" name="item_quantity[]" placeholder="Qty" min="1" step="1" value="1" oninput="updateCustomItemTotal(this); recalculate()">
+                <input type="number" name="item_quantity[]" placeholder="${typeof i18n === 'function' ? i18n('placeholder_qty') : 'Qty'}" min="1" step="1" value="1" oninput="updateCustomItemTotal(this); recalculate()">
             </div>
             <div class="form-group" style="width: 120px;">
-                <input type="number" name="item_unit_price[]" placeholder="Unit Price" min="0" step="0.01" value="0" oninput="updateCustomItemTotal(this); recalculate()">
+                <input type="number" name="item_unit_price[]" placeholder="${typeof i18n === 'function' ? i18n('placeholder_unit_price') : 'Unit Price'}" min="0" step="0.01" value="0" oninput="updateCustomItemTotal(this); recalculate()">
             </div>
             <div class="form-group" style="width: 120px;">
                 <input type="number" name="item_total[]" readonly class="item-line-total" value="0">
@@ -295,6 +362,9 @@ function updateCustomItemTotal(input) {
 // ═══════════════════════════════════════════════════════════════════
 // COST CALCULATION ENGINE
 // ═══════════════════════════════════════════════════════════════════
+
+// Pricing factor for the currently selected client (silently adjusts unit prices)
+let pricingFactor = (typeof PRICING_FACTOR !== 'undefined') ? PRICING_FACTOR : 1.0;
 
 // Shape factors for pool area calculations
 const SHAPE_FACTORS = {
@@ -368,7 +438,7 @@ function calculateCosts(data, metrics) {
     if (typeof PRICING === 'undefined') return { items: [], subtotal: 0 };
 
     const items = [];
-    const p = (key) => PRICING[key] ? parseFloat(PRICING[key].unit_price) : 0;
+    const p = (key) => PRICING[key] ? Math.round(parseFloat(PRICING[key].unit_price) * pricingFactor * 100) / 100 : 0;
 
     if (data.pool_length <= 0 || data.pool_width <= 0) {
         return { items: [], subtotal: 0 };
@@ -588,21 +658,21 @@ function updateSummaryDisplay(items, currency) {
     if (!container) return;
 
     if (items.length === 0) {
-        container.innerHTML = '<p class="summary-empty">Enter pool dimensions to see cost breakdown</p>';
+        container.innerHTML = '<p class="summary-empty">' + (typeof i18n === 'function' ? i18n('summary_empty') : 'Enter pool dimensions to see cost breakdown') + '</p>';
         return;
     }
 
     let html = '';
     const categoryLabels = {
-        'excavation': 'Excavation',
-        'shell': 'Pool Shell',
-        'finish': 'Interior Finish',
-        'equipment': 'Equipment & Plumbing',
-        'tile': 'Tile & Coping',
-        'features': 'Features & Add-ons',
-        'deck': 'Deck',
-        'fence': 'Fencing',
-        'other': 'Other',
+        'excavation': typeof i18n === 'function' ? i18n('cat_excavation') : 'Excavation',
+        'shell':      typeof i18n === 'function' ? i18n('cat_shell')      : 'Pool Shell',
+        'finish':     typeof i18n === 'function' ? i18n('cat_finish')     : 'Interior Finish',
+        'equipment':  typeof i18n === 'function' ? i18n('cat_equipment')  : 'Equipment & Plumbing',
+        'tile':       typeof i18n === 'function' ? i18n('cat_tile')       : 'Tile & Coping',
+        'features':   typeof i18n === 'function' ? i18n('cat_features')   : 'Features & Add-ons',
+        'deck':       typeof i18n === 'function' ? i18n('cat_deck')       : 'Deck',
+        'fence':      typeof i18n === 'function' ? i18n('cat_fence')      : 'Fencing',
+        'other':      typeof i18n === 'function' ? i18n('cat_other')      : 'Other',
     };
 
     let currentCat = '';
@@ -628,7 +698,7 @@ function updateSummaryDisplay(items, currency) {
             const total = parseFloat(row.querySelector('[name="item_total[]"]')?.value) || 0;
             if (desc && total > 0) {
                 if (!hasCustom) {
-                    html += `<div class="summary-category">Custom Items</div>`;
+                    html += `<div class="summary-category">${typeof i18n === 'function' ? i18n('cat_custom') : 'Custom Items'}</div>`;
                     hasCustom = true;
                 }
                 html += `
@@ -700,3 +770,18 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+document.addEventListener('keydown', (e) => {
+    if (document.getElementById('shape-preview-modal').classList.contains('show')) {
+        if (e.key === 'ArrowLeft') navigateGallery(-1);
+        else if (e.key === 'ArrowRight') navigateGallery(1);
+        else if (e.key === 'Escape') closeShapePreview();
+    }
+});
+
+// Re-render dynamic cost summary when language changes
+document.addEventListener('i18n:applied', () => {
+    if (typeof recalculate === 'function' && typeof PRICING !== 'undefined') {
+        recalculate();
+    }
+});

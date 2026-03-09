@@ -28,10 +28,42 @@ switch ($action) {
         echo json_encode($clients);
         break;
 
+    // ── List pool shape images ─────────────────────────────────────
+    case 'list_pool_images':
+        $shapeImages = [];
+        $shapes = ['rectangular', 'l-shaped', 'kidney', 'oval', 'freeform'];
+        $basePath = __DIR__ . '/assets/img/pool-shapes/';
+
+        foreach ($shapes as $shape) {
+            $shapePath = $basePath . $shape . '/';
+            $images = [];
+
+            if (is_dir($shapePath)) {
+                $files = scandir($shapePath);
+                foreach ($files as $file) {
+                    if ($file !== '.' && $file !== '..' && preg_match('/\.(jpg|jpeg|png|gif|svg)$/i', $file)) {
+                        $images[] = 'assets/img/pool-shapes/' . $shape . '/' . $file;
+                    }
+                }
+            }
+
+            $shapeImages[$shape] = $images;
+        }
+
+        echo json_encode($shapeImages);
+        break;
+
     // ── Get single client ───────────────────────────────────────────
     case 'get_client':
         $id = (int)($_GET['id'] ?? 0);
         $client = getClient($id);
+        if ($client) {
+            $discountPct = ($client['tier'] ?? 'priority') === 'standard'
+                ? (float)getSetting('standard_tier_discount', '0')
+                : 0.0;
+            $client['pricing_factor'] = round(1.0 - ($discountPct / 100.0), 6);
+            unset($client['tier']); // keep tier off the wire
+        }
         echo json_encode($client ?: ['error' => 'Not found']);
         break;
 

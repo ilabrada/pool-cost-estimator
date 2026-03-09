@@ -21,7 +21,7 @@ include __DIR__ . '/includes/header.php';
 ?>
 
 <div class="section-header">
-    <h2>Audit Log</h2>
+    <h2 data-i18n="page_audit_log">Audit Log</h2>
     <span class="badge badge-secondary"><?= $total ?> entries</span>
 </div>
 
@@ -29,10 +29,10 @@ include __DIR__ . '/includes/header.php';
 <div class="search-bar">
     <form method="GET" class="search-form">
         <select name="type" onchange="this.form.submit()">
-            <option value="">All Types</option>
-            <option value="estimate" <?= $filterType === 'estimate' ? 'selected' : '' ?>>Estimates</option>
-            <option value="client" <?= $filterType === 'client' ? 'selected' : '' ?>>Clients</option>
-            <option value="settings" <?= $filterType === 'settings' ? 'selected' : '' ?>>Settings</option>
+            <option value="" data-i18n="filter_all_types">All Types</option>
+            <option value="estimate" data-i18n="filter_estimates" <?= $filterType === 'estimate' ? 'selected' : '' ?>>Estimates</option>
+            <option value="client" data-i18n="nav_clients" <?= $filterType === 'client' ? 'selected' : '' ?>>Clients</option>
+            <option value="settings" data-i18n="filter_settings" <?= $filterType === 'settings' ? 'selected' : '' ?>>Settings</option>
         </select>
     </form>
 </div>
@@ -40,20 +40,20 @@ include __DIR__ . '/includes/header.php';
 <?php if (empty($logs)): ?>
     <div class="empty-state">
         <span class="material-icons-round">history</span>
-        <h3>No audit entries yet</h3>
-        <p>Activity will appear here when estimates or clients are saved.</p>
+        <h3 data-i18n="no_audit_yet">No audit entries yet</h3>
+        <p data-i18n="no_audit_msg">Activity will appear here when estimates or clients are saved.</p>
     </div>
 <?php else: ?>
     <div class="table-responsive">
         <table class="data-table audit-table">
             <thead>
                 <tr>
-                    <th>Date &amp; Time</th>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>Type</th>
-                    <th>Details</th>
-                    <th>IP Address</th>
+                    <th data-i18n="col_datetime">Date &amp; Time</th>
+                    <th data-i18n="col_user">User</th>
+                    <th data-i18n="col_action">Action</th>
+                    <th data-i18n="col_type">Type</th>
+                    <th data-i18n="col_details">Details</th>
+                    <th data-i18n="col_ip">IP Address</th>
                 </tr>
             </thead>
             <tbody>

@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setSetting('estimate_validity_days', (string)(int)($_POST['estimate_validity_days'] ?? 30));
         setSetting('estimate_prefix', trim($_POST['estimate_prefix'] ?? 'EST'));
         setSetting('estimate_terms', trim($_POST['estimate_terms'] ?? ''));
+        setSetting('standard_tier_discount', (string)max(0, min(100, (float)($_POST['standard_tier_discount'] ?? 0))));
         logAudit('settings', null, 'update', ['section' => 'business']);
         $success = 'Business settings saved!';
         $tab = 'business';
@@ -126,13 +127,13 @@ include __DIR__ . '/includes/header.php';
 <!-- Settings Tabs -->
 <div class="tabs">
     <a href="?tab=business" class="tab <?= $tab === 'business' ? 'active' : '' ?>">
-        <span class="material-icons-round">business</span> Business
+        <span class="material-icons-round">business</span> <span data-i18n="tab_business">Business</span>
     </a>
     <a href="?tab=pricing" class="tab <?= $tab === 'pricing' ? 'active' : '' ?>">
-        <span class="material-icons-round">attach_money</span> Pricing
+        <span class="material-icons-round">attach_money</span> <span data-i18n="tab_pricing">Pricing</span>
     </a>
     <a href="?tab=security" class="tab <?= $tab === 'security' ? 'active' : '' ?>">
-        <span class="material-icons-round">lock</span> Security
+        <span class="material-icons-round">lock</span> <span data-i18n="tab_security">Security</span>
     </a>
 </div>
 
@@ -143,28 +144,28 @@ include __DIR__ . '/includes/header.php';
 
         <div class="form-card">
             <div class="form-card-header">
-                <h3>Business Information</h3>
+                <h3 data-i18n="section_business_info">Business Information</h3>
             </div>
             <div class="form-card-body">
                 <div class="form-group">
-                    <label for="business_name">Business Name</label>
+                    <label for="business_name" data-i18n="label_business_name">Business Name</label>
                     <input type="text" id="business_name" name="business_name" 
                            value="<?= e($settings['business_name'] ?? '') ?>">
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="business_phone">Phone</label>
+                        <label for="business_phone" data-i18n="label_business_phone">Phone</label>
                         <input type="tel" id="business_phone" name="business_phone" 
                                value="<?= e($settings['business_phone'] ?? '') ?>">
                     </div>
                     <div class="form-group">
-                        <label for="business_email">Email</label>
+                        <label for="business_email" data-i18n="label_business_email">Email</label>
                         <input type="email" id="business_email" name="business_email" 
                                value="<?= e($settings['business_email'] ?? '') ?>">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="business_address">Address</label>
+                    <label for="business_address" data-i18n="label_business_address">Address</label>
                     <textarea id="business_address" name="business_address" rows="2"><?= e($settings['business_address'] ?? '') ?></textarea>
                 </div>
             </div>
@@ -172,42 +173,48 @@ include __DIR__ . '/includes/header.php';
 
         <div class="form-card">
             <div class="form-card-header">
-                <h3>Estimate Settings</h3>
+                <h3 data-i18n="section_estimate_settings">Estimate Settings</h3>
             </div>
             <div class="form-card-body">
                 <div class="form-row form-row-3">
                     <div class="form-group">
-                        <label for="currency_symbol">Currency Symbol</label>
+                        <label for="currency_symbol" data-i18n="label_currency_symbol">Currency Symbol</label>
                         <input type="text" id="currency_symbol" name="currency_symbol" 
                                maxlength="5" value="<?= e($settings['currency_symbol'] ?? '$') ?>">
                     </div>
                     <div class="form-group">
-                        <label for="measurement_unit">Unit of Measure</label>
+                        <label for="measurement_unit" data-i18n="label_measure_unit">Unit of Measure</label>
                         <select id="measurement_unit" name="measurement_unit">
-                            <option value="ft" <?= ($settings['measurement_unit'] ?? '') === 'ft' ? 'selected' : '' ?>>Feet (ft)</option>
-                            <option value="m" <?= ($settings['measurement_unit'] ?? '') === 'm' ? 'selected' : '' ?>>Meters (m)</option>
+                            <option value="ft" data-i18n="unit_ft_option" <?= ($settings['measurement_unit'] ?? '') === 'ft' ? 'selected' : '' ?>>Feet (ft)</option>
+                            <option value="m" data-i18n="unit_m_option" <?= ($settings['measurement_unit'] ?? '') === 'm' ? 'selected' : '' ?>>Meters (m)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="tax_rate">Default Tax Rate (%)</label>
+                        <label for="tax_rate" data-i18n="label_tax_rate">Default Tax Rate (%)</label>
                         <input type="number" id="tax_rate" name="tax_rate" step="0.25" min="0" max="30"
                                value="<?= e($settings['tax_rate'] ?? '7') ?>">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="estimate_prefix">Estimate Number Prefix</label>
+                        <label for="estimate_prefix" data-i18n="label_estimate_prefix">Estimate Number Prefix</label>
                         <input type="text" id="estimate_prefix" name="estimate_prefix" maxlength="10"
                                value="<?= e($settings['estimate_prefix'] ?? 'EST') ?>">
                     </div>
                     <div class="form-group">
-                        <label for="estimate_validity_days">Validity (days)</label>
+                        <label for="estimate_validity_days" data-i18n="label_validity_days">Validity (days)</label>
                         <input type="number" id="estimate_validity_days" name="estimate_validity_days" min="1" max="365"
                                value="<?= e($settings['estimate_validity_days'] ?? '30') ?>">
                     </div>
+                    <div class="form-group">
+                        <label for="standard_tier_discount" data-i18n="label_standard_discount">Standard Account Rate Adjustment (%)</label>
+                        <input type="number" id="standard_tier_discount" name="standard_tier_discount"
+                               step="0.5" min="0" max="100"
+                               value="<?= e($settings['standard_tier_discount'] ?? '10') ?>">
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label for="estimate_terms">Terms & Conditions</label>
+                    <label for="estimate_terms" data-i18n="label_terms">Terms &amp; Conditions</label>
                     <textarea id="estimate_terms" name="estimate_terms" rows="4"><?= e($settings['estimate_terms'] ?? '') ?></textarea>
                 </div>
             </div>
@@ -215,7 +222,7 @@ include __DIR__ . '/includes/header.php';
 
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">
-                <span class="material-icons-round">save</span> Save Settings
+                <span class="material-icons-round">save</span> <span data-i18n="btn_save_settings">Save Settings</span>
             </button>
         </div>
     </form>
@@ -225,7 +232,7 @@ include __DIR__ . '/includes/header.php';
         <?= csrfField() ?>
         <input type="hidden" name="form_action" value="pricing">
 
-        <p class="form-help">Adjust the unit prices below. These are used to auto-calculate estimates.</p>
+        <p class="form-help" data-i18n="pricing_help">Adjust the unit prices below. These are used to auto-calculate estimates.</p>
 
         <?php foreach ($pricingByCategory as $category => $items): ?>
             <div class="form-card">
@@ -259,7 +266,7 @@ include __DIR__ . '/includes/header.php';
 
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">
-                <span class="material-icons-round">save</span> Save Pricing
+                <span class="material-icons-round">save</span> <span data-i18n="btn_save_pricing">Save Pricing</span>
             </button>
         </div>
     </form>
@@ -271,21 +278,21 @@ include __DIR__ . '/includes/header.php';
 
         <div class="form-card">
             <div class="form-card-header">
-                <h3>Change Access PIN</h3>
+                <h3 data-i18n="section_change_pin">Change Access PIN</h3>
             </div>
             <div class="form-card-body">
                 <div class="form-group">
-                    <label for="current_pin">Current PIN</label>
+                    <label for="current_pin" data-i18n="label_current_pin">Current PIN</label>
                     <input type="password" id="current_pin" name="current_pin" required 
                            inputmode="numeric">
                 </div>
                 <div class="form-group">
-                    <label for="new_pin">New PIN <small>(min 4 characters)</small></label>
+                    <label for="new_pin" data-i18n="label_new_pin">New PIN <small data-i18n="hint_min_4">(min 4 characters)</small></label>
                     <input type="password" id="new_pin" name="new_pin" required minlength="4"
                            inputmode="numeric">
                 </div>
                 <div class="form-group">
-                    <label for="confirm_pin">Confirm New PIN</label>
+                    <label for="confirm_pin" data-i18n="label_confirm_pin">Confirm New PIN</label>
                     <input type="password" id="confirm_pin" name="confirm_pin" required 
                            inputmode="numeric">
                 </div>
@@ -294,7 +301,7 @@ include __DIR__ . '/includes/header.php';
 
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">
-                <span class="material-icons-round">lock</span> Change PIN
+                <span class="material-icons-round">lock</span> <span data-i18n="btn_change_pin">Change PIN</span>
             </button>
         </div>
     </form>
@@ -306,16 +313,16 @@ include __DIR__ . '/includes/header.php';
 
         <div class="form-card">
             <div class="form-card-header">
-                <h3>Estimator User</h3>
+                <h3 data-i18n="section_estimator_user">Estimator User</h3>
             </div>
             <div class="form-card-body">
-                <p class="form-help">Enable a second user with a separate PIN. The Estimator user can create estimates and manage clients but cannot access Settings.</p>
+                <p class="form-help" data-i18n="estimator_help">Enable a second user with a separate PIN. The Estimator user can create estimates and manage clients but cannot access Settings.</p>
                 <div class="form-group">
                     <label class="toggle-label">
                         <input type="checkbox" name="estimator_enabled" value="1"
                                <?= ($settings['estimator_enabled'] ?? '0') === '1' ? 'checked' : '' ?>
                                onchange="document.getElementById('estimator-pin-fields').style.display = this.checked ? 'block' : 'none'">
-                        <span>Enable Estimator User</span>
+                        <span data-i18n="label_enable_estimator">Enable Estimator User</span>
                     </label>
                 </div>
                 <div id="estimator-pin-fields" style="display: <?= ($settings['estimator_enabled'] ?? '0') === '1' ? 'block' : 'none' ?>">
@@ -335,10 +342,22 @@ include __DIR__ . '/includes/header.php';
 
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">
-                <span class="material-icons-round">save</span> Save Estimator Settings
+                <span class="material-icons-round">save</span> <span data-i18n="btn_save_estimator">Save Estimator Settings</span>
             </button>
         </div>
     </form>
+
+    <div class="form-card form-narrow" style="margin-top:1.5rem;">
+        <div class="form-card-header">
+            <h3>Database Maintenance</h3>
+        </div>
+        <div class="form-card-body">
+            <p style="margin:0 0 1rem">Apply any pending database migration scripts. Your business information and PIN are never modified by this process.</p>
+            <a href="migrate.php" class="btn btn-secondary">
+                <span class="material-icons-round">upgrade</span> Run Migrations
+            </a>
+        </div>
+    </div>
 <?php endif; ?>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
