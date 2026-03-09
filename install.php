@@ -76,6 +76,17 @@ if ($step === '2') {
         }
 
         if (!$error) {
+            // If this database was already set up, skip the business-info/PIN step entirely.
+            try {
+                $check = $pdo->prepare("SELECT setting_value FROM settings WHERE setting_key = 'installed'");
+                $check->execute();
+                $row = $check->fetch();
+                if ($row && $row['setting_value'] === '1') {
+                    header('Location: install.php?step=done');
+                    exit;
+                }
+            } catch (PDOException $e) { /* new install — proceed to step 3 */ }
+
             $success = 'Schema and migrations applied successfully.';
         }
     } catch (PDOException $e) {

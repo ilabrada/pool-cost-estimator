@@ -346,6 +346,18 @@ include __DIR__ . '/includes/header.php';
             </button>
         </div>
     </form>
+
+    <div class="form-card form-narrow" style="margin-top:1.5rem;">
+        <div class="form-card-header">
+            <h3>Database Maintenance</h3>
+        </div>
+        <div class="form-card-body">
+            <p style="margin:0 0 1rem">Apply any pending database migration scripts. Your business information and PIN are never modified by this process.</p>
+            <a href="migrate.php" class="btn btn-secondary">
+                <span class="material-icons-round">upgrade</span> Run Migrations
+            </a>
+        </div>
+    </div>
 <?php endif; ?>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

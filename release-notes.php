@@ -27,6 +27,7 @@ include __DIR__ . '/includes/header.php';
         <ul class="release-changes">
             <li>Add Release Notes link to display compact changelog</li>
             <li>Add dual language support with English/Spanish toggle</li>
+            <li>Refactor database migration process to run pending scripts without resetting existing business configuration or admin credentials</li>
         </ul>
     </div>
 

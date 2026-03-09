@@ -80,6 +80,8 @@ Visit `https://yourdomain.com/install.php` in your browser:
 
 After setup, **delete `install.php`** from your server for security.
 
+> **Future migrations:** Use `migrate.php` (requires admin login) to apply new SQL scripts without going through the full installation wizard again. See [Running Migrations](#running-migrations).
+
 ### 6. Login
 
 Visit `https://yourdomain.com/` and enter your PIN.
@@ -203,6 +205,7 @@ Go to your repository → **Settings → Secrets and variables → Actions** and
 ```
 ├── index.php                 # Login page
 ├── install.php               # Installation wizard (delete after setup)
+├── migrate.php               # Migration runner for existing installs (requires login)
 ├── dashboard.php             # Main dashboard with estimates list
 ├── estimate.php              # Create/edit estimate form
 ├── clients.php               # Client management (list, add, edit, view)
@@ -289,6 +292,36 @@ Access the log from the **Audit Log** link in the sidebar. Filter by entity type
 - SQL injection prevented via PDO prepared statements
 - `.htaccess` blocks access to sensitive files
 - Delete `install.php` after setup
+- `migrate.php` is protected by admin session authentication; no credentials are stored in the file itself
+
+## Running Migrations
+
+After the initial installation, apply new SQL migration scripts without re-entering business information or your admin PIN.
+
+### Using the Web UI (recommended)
+
+1. Log in to the app as an admin.
+2. Navigate to `https://yourdomain.com/migrate.php`.
+3. Click **Run Pending Migrations**.
+4. The page shows each file in `sql/migrations/` with its status:
+   - **Applied** — the script ran successfully and was recorded.
+   - **Already applied** — skipped because it was already recorded in the `migrations` table.
+   - **Error** — the script failed; details are shown inline.
+5. Your business information and admin PIN are **never touched** by this process.
+
+### What counts as a pending migration?
+
+Any `.sql` file in `sql/migrations/` whose filename does **not** appear in the `migrations` database table. Files are applied in sorted (alphabetical/numeric) order.
+
+### Adding a new migration
+
+1. Create a new file in `sql/migrations/` following the naming convention: `NNN_description.sql` (e.g. `003_add_promo_codes.sql`).
+2. Write idempotent SQL where possible (use `IF NOT EXISTS`, `IF EXISTS`, etc.).
+3. Deploy the file to the server and run `migrate.php`.
+
+### What about `install.php`?
+
+`install.php` is the **first-time** setup wizard. On an already-configured database, Step 2 now auto-detects the existing setup and redirects directly to the completion screen — it will **never** overwrite your business info or PIN. You can still use `install.php` to reapply the base schema + any pending migrations during first-time setup, then delete it afterward for security.
 
 ## License
 
