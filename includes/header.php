@@ -6,6 +6,12 @@
 $pageTitle = $pageTitle ?? APP_NAME;
 $bodyClass = $bodyClass ?? '';
 $currentPage = basename($_SERVER['PHP_SELF'], '.php');
+$pageTitleKey = $pageTitleKey ?? [
+    'dashboard'     => 'page_dashboard',
+    'audit-log'     => 'page_audit_log',
+    'settings'      => 'page_settings',
+    'release-notes' => 'page_release_notes',
+][$currentPage] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +21,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#0077B6">
+    <meta name="theme-color" content="#002d62">
     <title><?= e($pageTitle) ?></title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏊</text></svg>">
@@ -32,7 +38,8 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
         <button class="btn-icon menu-toggle" onclick="toggleSidebar()" aria-label="Menu">
             <span class="material-icons-round">menu</span>
         </button>
-        <h1 class="header-title"><?= e($pageTitle) ?></h1>
+        <img src="assets/img/logos/logo01.png" alt="Logo" class="header-logo">
+        <h1 class="header-title"<?= $pageTitleKey ? ' data-i18n="' . e($pageTitleKey) . '"' : '' ?>><?= e($pageTitle) ?></h1>
     </div>
     <div class="header-right">
         <div class="lang-toggle" title="Language / Idioma">
@@ -53,7 +60,6 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <span class="sidebar-logo">🏊</span>
         <span class="sidebar-brand"><?= e(getSetting('business_name', APP_NAME)) ?></span>
     </div>
     <ul class="sidebar-nav">
