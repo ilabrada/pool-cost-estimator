@@ -7,6 +7,7 @@ require_once __DIR__ . '/includes/functions.php';
 requireAuth();
 
 $pageTitle = 'Clients';
+$pageTitleKey = 'page_clients';
 $action = $_GET['action'] ?? 'list';
 $clientId = (int)($_GET['id'] ?? 0);
 $error = '';
@@ -61,13 +62,16 @@ if ($clientId > 0) {
     }
     if ($action === 'view') {
         $pageTitle = 'Client: ' . $client['name'];
+        // dynamic title — no i18n key (contains client name)
     } elseif ($action === 'edit') {
         $pageTitle = 'Edit Client';
+        $pageTitleKey = 'page_edit_client';
     }
 }
 
 if ($action === 'new') {
     $pageTitle = 'New Client';
+    $pageTitleKey = 'page_new_client';
 }
 
 include __DIR__ . '/includes/header.php';

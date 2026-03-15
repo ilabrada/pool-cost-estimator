@@ -24,6 +24,7 @@ window.I18N_LOCALES['es'] = {
     lang_toggle_label:    'Idioma',
 
     // ── Dashboard ─────────────────────────────────────────────────
+    page_dashboard:       'Panel Principal',
     stat_total_estimates: 'Cotizaciones Totales',
     stat_drafts:          'Borradores',
     stat_approved:        'Aprobadas',
@@ -46,6 +47,8 @@ window.I18N_LOCALES['es'] = {
     label_no_client:      'Sin cliente',
 
     // ── Estimate form ─────────────────────────────────────────────
+    page_new_estimate:       'Nueva Cotización',
+    page_edit_estimate:      'Editar Cotización',
     section_client:          'Información del Cliente',
     label_client_name:       'Nombre del Cliente *',
     placeholder_client:      'Buscar o escribir nombre del cliente…',
@@ -160,6 +163,8 @@ window.I18N_LOCALES['es'] = {
 
     // ── Clients ───────────────────────────────────────────────────
     page_clients:            'Clientes',
+    page_new_client:         'Nuevo Cliente',
+    page_edit_client:        'Editar Cliente',
     all_clients:             'Todos los Clientes',
     btn_new_client:          'Nuevo Cliente',
     search_clients:          'Buscar clientes…',
@@ -193,6 +198,8 @@ window.I18N_LOCALES['es'] = {
     filter_all_types:        'Todos los tipos',
     filter_estimates:        'Cotizaciones',
     filter_settings:         'Configuración',
+
+    page_release_notes:      'Notas de Versión',
 
     // ── Settings ──────────────────────────────────────────────────
     page_settings:           'Configuración',
