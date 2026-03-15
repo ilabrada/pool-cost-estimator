@@ -35,6 +35,7 @@ window.I18N_LOCALES['en'] = {
     lang_toggle_label:    'Language',
 
     // ── Dashboard ─────────────────────────────────────────────────
+    page_dashboard:       'Dashboard',
     stat_total_estimates: 'Total Estimates',
     stat_drafts:          'Drafts',
     stat_approved:        'Approved',
@@ -57,6 +58,8 @@ window.I18N_LOCALES['en'] = {
     label_no_client:      'No client',
 
     // ── Estimate form ─────────────────────────────────────────────
+    page_new_estimate:       'New Estimate',
+    page_edit_estimate:      'Edit Estimate',
     section_client:          'Client Information',
     label_client_name:       'Client Name *',
     placeholder_client:      'Search or type new client name…',
@@ -173,6 +176,8 @@ window.I18N_LOCALES['en'] = {
 
     // ── Clients ───────────────────────────────────────────────────
     page_clients:            'Clients',
+    page_new_client:         'New Client',
+    page_edit_client:        'Edit Client',
     all_clients:             'All Clients',
     btn_new_client:          'New Client',
     search_clients:          'Search clients…',
@@ -206,6 +211,8 @@ window.I18N_LOCALES['en'] = {
     filter_all_types:        'All Types',
     filter_estimates:        'Estimates',
     filter_settings:         'Settings',
+
+    page_release_notes:      'Release Notes',
 
     // ── Settings ──────────────────────────────────────────────────
     page_settings:           'Settings',

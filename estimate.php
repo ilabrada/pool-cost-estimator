@@ -128,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = $id ? 'Edit Estimate #' . ($estimate['estimate_number'] ?? '') : 'New Estimate';
+$pageTitleKey = $id ? 'page_edit_estimate' : 'page_new_estimate';
 $pricing = getPricingByKey();
 $pricingJson = json_encode($pricing);
 $settings = getSettings();
