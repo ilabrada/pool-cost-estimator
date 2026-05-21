@@ -86,6 +86,14 @@ $currency = $settings['currency_symbol'] ?? '$';
             border-bottom: 3px solid #0077B6;
         }
 
+        .doc-business-logo {
+            max-height: 60px;
+            max-width: 180px;
+            object-fit: contain;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
         .doc-business h1 {
             font-size: 1.5rem;
             color: #0077B6;
@@ -312,6 +320,7 @@ $currency = $settings['currency_symbol'] ?? '$';
     <!-- Document Header -->
     <div class="doc-header">
         <div class="doc-business">
+            <img src="assets/img/logos/logo01.png" alt="Logo" class="doc-business-logo">
             <h1><?= e($settings['business_name'] ?? 'Pool Builder') ?></h1>
             <?php if (!empty($settings['business_phone'])): ?>
                 <p>📞 <?= e($settings['business_phone']) ?></p>
