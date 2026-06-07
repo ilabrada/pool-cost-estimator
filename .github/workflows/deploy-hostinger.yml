@@ -1,0 +1,29 @@
+name: Deploy to Hostinger QA
+
+on:
+  push:
+    branches:
+      - hostinger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Replace config tokens
+        run: |
+          sed -i 's/{{DB_HOST}}/${{ secrets.HOSTINGER_DB__HOST }}/g' includes/config.php
+          sed -i 's/{{DB_NAME}}/${{ secrets.HOSTINGER_DB__NAME }}/g' includes/config.php
+          sed -i 's/{{DB_USER}}/${{ secrets.HOSTINGER_DB__USERNAME }}/g' includes/config.php
+          sed -i 's/{{DB_PASS}}/${{ secrets.HOSTINGER_DB__PASS }}/g' includes/config.php
+          sed -i 's/{{DB_PORT}}/${{ secrets.HOSTINGER_DB__PORT }}/g' includes/config.php
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          server-dir: /qa/
