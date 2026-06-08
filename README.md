@@ -325,4 +325,4 @@ Any `.sql` file in `sql/migrations/` whose filename does **not** appear in the `
 
 ## License
 
-Private use. All rights reserved.
+Private use. All rights reserved. 
