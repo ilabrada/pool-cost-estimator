@@ -19,11 +19,6 @@ jobs:
           sed -i 's/{{DB_USER}}/${{ secrets.HOSTINGER_DB__USERNAME }}/g' includes/config.php
           sed -i 's/{{DB_PASS}}/${{ secrets.HOSTINGER_DB__PASS }}/g' includes/config.php
           sed -i 's/{{DB_PORT}}/${{ secrets.HOSTINGER_DB__PORT }}/g' includes/config.php
-          # sed -i 's/{{DB_HOST}}/${{ secrets.IWEBFUSION_DEV_DB_HOST }}/g' includes/config.php
-          # sed -i 's/{{DB_NAME}}/${{ secrets.IWEBFUSION_DEV_DB_NAME }}/g' includes/config.php
-          # sed -i 's/{{DB_USER}}/${{ secrets.IWEBFUSION_DEV_DB_USERNAME }}/g' includes/config.php
-          # sed -i 's/{{DB_PASS}}/${{ secrets.IWEBFUSION_DEV_DB_PASS }}/g' includes/config.php
-          # sed -i 's/{{DB_PORT}}/${{ secrets.IWEBFUSION_DEV_DB_PORT }}/g' includes/config.php
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -31,7 +26,4 @@ jobs:
           server: ${{ secrets.HOSTINGER_FTP_SERVER }}
           username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
           password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          # server: ${{ secrets.FTP_SERVER }}
-          # username: ${{ secrets.FTP_USERNAME }}
-          # password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /qa/
