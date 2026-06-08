@@ -15,16 +15,17 @@ jobs:
 
       - name: Replace config tokens
         run: |
-          sed -i 's/{{DB_HOST}}/${{ secrets.IWEBFUSION_DB_HOST }}/g' includes/config.php
-          sed -i 's/{{DB_NAME}}/${{ secrets.IWEBFUSION_DB_NAME }}/g' includes/config.php
-          sed -i 's/{{DB_USER}}/${{ secrets.IWEBFUSION_DB_USERNAME }}/g' includes/config.php
-          sed -i 's/{{DB_PASS}}/${{ secrets.IWEBFUSION_DB_PASS }}/g' includes/config.php
-          sed -i 's/{{DB_PORT}}/${{ secrets.IWEBFUSION_DB_PORT }}/g' includes/config.php
+          sed -i 's/{{DB_HOST}}/${{ secrets.PROD_DB_HOST }}/g' includes/config.php
+          sed -i 's/{{DB_NAME}}/${{ secrets.PROD_DB_NAME }}/g' includes/config.php
+          sed -i 's/{{DB_USER}}/${{ secrets.PROD_DB_USERNAME }}/g' includes/config.php
+          sed -i 's/{{DB_PASS}}/${{ secrets.PROD_DB_PASS }}/g' includes/config.php
+          sed -i 's/{{DB_PORT}}/${{ secrets.PROD_DB_PORT }}/g' includes/config.php
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
           server-dir: /
+          protocol: ftps
