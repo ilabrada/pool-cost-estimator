@@ -21,6 +21,12 @@ $settings = getSettings();
 $items = $estimate['items'] ?? [];
 $unit = $settings['measurement_unit'] ?? 'ft';
 $currency = $settings['currency_symbol'] ?? '$';
+
+$pdfVisibleCategories = ['custom', 'features', 'deck', 'fence'];
+$pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleCategories) {
+    $category = $item['category'] ?? 'general';
+    return in_array($category, $pdfVisibleCategories, true);
+}));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -423,27 +429,15 @@ $currency = $settings['currency_symbol'] ?? '$';
         </thead>
         <tbody>
             <?php
-            $currentCategory = '';
-            $categoryLabels = [
-                'excavation'  => 'Excavation',
-                'shell'       => 'Pool Shell',
-                'finish'      => 'Interior Finish',
-                'equipment'   => 'Equipment & Plumbing',
-                'tile'        => 'Tile & Coping',
-                'features'    => 'Features & Add-ons',
-                'deck'        => 'Deck & Surroundings',
-                'fence'       => 'Fencing',
-                'other'       => 'Other',
-                'custom'      => 'Custom Items',
-                'general'     => 'Additional Items',
-            ];
-            foreach ($items as $item):
+            $currentPdfGroup = null;
+            foreach ($pdfItems as $item):
                 $cat = $item['category'] ?? 'general';
-                if ($cat !== $currentCategory):
-                    $currentCategory = $cat;
+                $groupKey = ($cat === 'custom') ? 'custom' : 'features';
+                if ($currentPdfGroup !== $groupKey):
+                    $currentPdfGroup = $groupKey;
             ?>
                 <tr class="category-row">
-                    <td colspan="4"><?= e($categoryLabels[$cat] ?? ucfirst($cat)) ?></td>
+                    <td colspan="4"><?= e($groupKey === 'custom' ? 'Custom Items' : 'Features & Add-ons') ?></td>
                 </tr>
             <?php endif; ?>
             <tr>
@@ -453,6 +447,11 @@ $currency = $settings['currency_symbol'] ?? '$';
                 <td><?= $currency . number_format((float)$item['total'], 2) ?></td>
             </tr>
             <?php endforeach; ?>
+            <?php if (empty($pdfItems)): ?>
+                <tr>
+                    <td colspan="4" style="text-align:center; color:#6C757D; padding:1rem;">No itemized add-ons for this estimate.</td>
+                </tr>
+            <?php endif; ?>
         </tbody>
     </table>
 
