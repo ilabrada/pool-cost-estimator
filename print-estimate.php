@@ -169,6 +169,8 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
             margin-bottom: 2rem;
             padding-bottom: 1.5rem;
             border-bottom: 3px solid #0077B6;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         .doc-business-logo {
@@ -228,6 +230,11 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
             font-weight: 600;
         }
 
+        .doc-info-box {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
         .doc-info-box p {
             font-size: 0.9rem;
             margin-bottom: 0.25rem;
@@ -267,6 +274,11 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
 
         .doc-table tbody tr:nth-child(even) { background: #fafafa; }
 
+        .doc-table tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
         .doc-table .category-row td {
             background: #f0f7fb;
             font-weight: 600;
@@ -282,6 +294,8 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
             display: flex;
             justify-content: flex-end;
             margin-bottom: 2rem;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         .doc-totals-table {
@@ -293,6 +307,8 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
             justify-content: space-between;
             padding: 0.5rem 0;
             font-size: 0.95rem;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         .doc-totals-row.total {
@@ -313,6 +329,8 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
             padding: 1rem;
             background: #f8f9fa;
             border-radius: 8px;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         .doc-spec {
@@ -334,6 +352,8 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
         /* Notes & Terms */
         .doc-notes {
             margin-bottom: 1.5rem;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         .doc-notes h3 {
@@ -356,6 +376,8 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
             border-top: 1px solid #dee2e6;
             font-size: 0.8rem;
             color: #6C757D;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         .doc-status {
@@ -617,7 +639,8 @@ const PDF_OPTIONS = {
     filename:     'Estimate-<?= e($estimate['estimate_number']) ?>.pdf',
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2, useCORS: true },
-    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+    pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr', '.doc-header', '.doc-info-box', '.doc-specs', '.doc-totals', '.doc-totals-row', '.doc-notes', '.doc-footer'] }
 };
 
 function downloadPDF() {
