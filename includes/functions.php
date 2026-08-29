@@ -397,6 +397,79 @@ function statusBadge(string $status): string {
     return '<span class="badge ' . $class . '">' . ucfirst(e($status)) . '</span>';
 }
 
+// ── Email ───────────────────────────────────────────────────────────
+
+/**
+ * Send an email with an optional attachment, using SMTP or PHP's mail()
+ * depending on the configured mail_method setting.
+ *
+ * @return array{success: bool, error: string}
+ */
+function sendEmailWithAttachment(
+    string $toEmail,
+    string $toName,
+    string $subject,
+    string $bodyHtml,
+    string $attachmentContent = '',
+    string $attachmentName = ''
+): array {
+    require_once __DIR__ . '/PHPMailer/Exception.php';
+    require_once __DIR__ . '/PHPMailer/PHPMailer.php';
+    require_once __DIR__ . '/PHPMailer/SMTP.php';
+
+    $settings = getSettings();
+    $fromEmail = $settings['smtp_from_email'] ?: ($settings['business_email'] ?? '');
+    $fromName = $settings['smtp_from_name'] ?: ($settings['business_name'] ?? 'Pool Estimator');
+
+    if (!$fromEmail || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+        return ['success' => false, 'error' => 'No valid sender email is configured in Settings → Email.'];
+    }
+    if (!filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
+        return ['success' => false, 'error' => 'Recipient email address is invalid.'];
+    }
+
+    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+    try {
+        if (($settings['mail_method'] ?? 'mail') === 'smtp') {
+            $mail->isSMTP();
+            $mail->Host = $settings['smtp_host'] ?? '';
+            $mail->Port = (int)($settings['smtp_port'] ?? 587);
+            $encryption = $settings['smtp_encryption'] ?? 'tls';
+            if ($encryption === 'tls') {
+                $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            } elseif ($encryption === 'ssl') {
+                $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+            } else {
+                $mail->SMTPSecure = '';
+            }
+            if (!empty($settings['smtp_username'])) {
+                $mail->SMTPAuth = true;
+                $mail->Username = $settings['smtp_username'];
+                $mail->Password = $settings['smtp_password'] ?? '';
+            }
+        } else {
+            $mail->isMail();
+        }
+
+        $mail->setFrom($fromEmail, $fromName);
+        $mail->addAddress($toEmail, $toName);
+        $mail->addReplyTo($fromEmail, $fromName);
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $bodyHtml;
+        $mail->AltBody = trim(strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $bodyHtml)));
+
+        if ($attachmentContent !== '' && $attachmentName !== '') {
+            $mail->addStringAttachment($attachmentContent, $attachmentName, 'base64', 'application/pdf');
+        }
+
+        $mail->send();
+        return ['success' => true, 'error' => ''];
+    } catch (\PHPMailer\PHPMailer\Exception $e) {
+        return ['success' => false, 'error' => $mail->ErrorInfo ?: $e->getMessage()];
+    }
+}
+
 // ── Audit Log ───────────────────────────────────────────────────────
 
 function getClientIP(): string {

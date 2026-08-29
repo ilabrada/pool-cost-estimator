@@ -152,6 +152,7 @@ window.I18N_LOCALES['en'] = {
     status_rejected:         'Rejected',
     btn_save_estimate:       'Save Estimate',
     btn_print_pdf:           'Print / PDF',
+    btn_email_client:        'Email to Client',
     btn_duplicate:           'Duplicate',
     btn_delete:              'Delete',
 
@@ -250,6 +251,17 @@ window.I18N_LOCALES['en'] = {
     hint_keep_current:       '— leave blank to keep current',
     label_confirm_estimator_pin: 'Confirm Estimator PIN',
     btn_save_estimator:      'Save Estimator Settings',
+    tab_email:               'Email',
+    section_email_settings:  'Email Settings',
+    label_mail_method:       'Sending Method',
+    label_from_name:         'From Name',
+    label_from_email:        'From Email',
+    label_smtp_host:         'SMTP Host',
+    label_smtp_port:         'SMTP Port',
+    label_smtp_encryption:   'Encryption',
+    label_smtp_username:     'SMTP Username',
+    label_smtp_password:     'SMTP Password',
+    btn_save_email:          'Save Email Settings',
 
     // ── Login ─────────────────────────────────────────────────────
     login_subtitle:          'Pool Cost Estimator',
