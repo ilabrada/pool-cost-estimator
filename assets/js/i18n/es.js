@@ -141,6 +141,7 @@ window.I18N_LOCALES['es'] = {
     status_rejected:         'Rechazada',
     btn_save_estimate:       'Guardar Cotización',
     btn_print_pdf:           'Imprimir / PDF',
+    btn_email_client:        'Enviar por Correo',
     btn_duplicate:           'Duplicar',
     btn_delete:              'Eliminar',
 
@@ -197,6 +198,21 @@ window.I18N_LOCALES['es'] = {
     no_audit_msg:            'La actividad aparecerá aquí cuando se guarden cotizaciones o clientes.',
     filter_all_types:        'Todos los tipos',
     filter_estimates:        'Cotizaciones',
+
+    // ── Print / Email estimate page (UI chrome only — not the document/email sent to clients) ──
+    print_btn_back:          'Atrás',
+    print_btn_print:         'Imprimir',
+    print_btn_download_pdf:  'Descargar PDF',
+    print_email_modal_title: 'Enviar Cotización {number} por Correo',
+    print_label_recipient:   'Correo del Destinatario',
+    print_label_subject:     'Asunto',
+    print_label_message:     'Mensaje',
+    btn_send:                'Enviar',
+    print_err_no_recipient:  'Por favor ingrese un correo electrónico del destinatario.',
+    print_status_generating: 'Generando PDF…',
+    print_status_sending:    'Enviando correo…',
+    print_status_success:    '¡Correo enviado exitosamente!',
+    print_status_fail:       'No se pudo enviar el correo. Inténtalo de nuevo.',
     filter_settings:         'Configuración',
 
     page_release_notes:      'Notas de Versión',
@@ -237,6 +253,17 @@ window.I18N_LOCALES['es'] = {
     hint_keep_current:       '— dejar en blanco para mantener el actual',
     label_confirm_estimator_pin: 'Confirmar PIN del Estimador',
     btn_save_estimator:      'Guardar Configuración del Estimador',
+    tab_email:               'Correo',
+    section_email_settings:  'Configuración de Correo',
+    label_mail_method:       'Método de Envío',
+    label_from_name:         'Nombre del Remitente',
+    label_from_email:        'Correo del Remitente',
+    label_smtp_host:         'Servidor SMTP',
+    label_smtp_port:         'Puerto SMTP',
+    label_smtp_encryption:   'Encriptación',
+    label_smtp_username:     'Usuario SMTP',
+    label_smtp_password:     'Contraseña SMTP',
+    btn_save_email:          'Guardar Configuración de Correo',
 
     // ── Login ─────────────────────────────────────────────────────
     login_subtitle:          'Estimador de Costos de Piscinas',

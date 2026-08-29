@@ -607,6 +607,9 @@ include __DIR__ . '/includes/header.php';
                             <a href="print-estimate.php?id=<?= $id ?>" target="_blank" class="btn btn-outline btn-sm">
                                 <span class="material-icons-round">print</span> <span data-i18n="btn_print_pdf">Print / PDF</span>
                             </a>
+                            <a href="print-estimate.php?id=<?= $id ?>&email=1" target="_blank" class="btn btn-outline btn-sm">
+                                <span class="material-icons-round">email</span> <span data-i18n="btn_email_client">Email to Client</span>
+                            </a>
                             <a href="estimate.php?id=<?= $id ?>&duplicate=1" class="btn btn-outline btn-sm">
                                 <span class="material-icons-round">content_copy</span> <span data-i18n="btn_duplicate">Duplicate</span>
                             </a>

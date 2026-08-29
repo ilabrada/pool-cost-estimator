@@ -37,6 +37,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tab = 'business';
     }
 
+    if ($formAction === 'email') {
+        setSetting('mail_method', in_array($_POST['mail_method'] ?? '', ['smtp', 'mail'], true) ? $_POST['mail_method'] : 'mail');
+        setSetting('smtp_host', trim($_POST['smtp_host'] ?? ''));
+        setSetting('smtp_port', (string)(int)($_POST['smtp_port'] ?? 587));
+        setSetting('smtp_encryption', in_array($_POST['smtp_encryption'] ?? '', ['tls', 'ssl', ''], true) ? $_POST['smtp_encryption'] : 'tls');
+        setSetting('smtp_username', trim($_POST['smtp_username'] ?? ''));
+        // Only overwrite the stored password if a new one was entered
+        if (trim($_POST['smtp_password'] ?? '') !== '') {
+            setSetting('smtp_password', trim($_POST['smtp_password']));
+        }
+        setSetting('smtp_from_email', trim($_POST['smtp_from_email'] ?? ''));
+        setSetting('smtp_from_name', trim($_POST['smtp_from_name'] ?? ''));
+        logAudit('settings', null, 'update', ['section' => 'email']);
+        $success = 'Email settings saved!';
+        $tab = 'email';
+    }
+
     if ($formAction === 'pricing') {
         $db = getDB();
         if (!empty($_POST['price_id'])) {
@@ -134,6 +151,9 @@ include __DIR__ . '/includes/header.php';
     </a>
     <a href="?tab=security" class="tab <?= $tab === 'security' ? 'active' : '' ?>">
         <span class="material-icons-round">lock</span> <span data-i18n="tab_security">Security</span>
+    </a>
+    <a href="?tab=email" class="tab <?= $tab === 'email' ? 'active' : '' ?>">
+        <span class="material-icons-round">email</span> <span data-i18n="tab_email">Email</span>
     </a>
 </div>
 
@@ -358,6 +378,82 @@ include __DIR__ . '/includes/header.php';
             </a>
         </div>
     </div>
+
+<?php elseif ($tab === 'email'): ?>
+    <form method="POST" class="form-narrow">
+        <?= csrfField() ?>
+        <input type="hidden" name="form_action" value="email">
+
+        <div class="form-card">
+            <div class="form-card-header">
+                <h3 data-i18n="section_email_settings">Email Settings</h3>
+            </div>
+            <div class="form-card-body">
+                <p class="form-help">Configure how estimate PDFs are emailed to clients from the print/estimate view.</p>
+                <div class="form-group">
+                    <label for="mail_method" data-i18n="label_mail_method">Sending Method</label>
+                    <select id="mail_method" name="mail_method" onchange="document.getElementById('smtp-fields').style.display = this.value === 'smtp' ? 'block' : 'none'">
+                        <option value="mail" <?= ($settings['mail_method'] ?? 'mail') === 'mail' ? 'selected' : '' ?>>Server mail() (default, works on most hosting)</option>
+                        <option value="smtp" <?= ($settings['mail_method'] ?? '') === 'smtp' ? 'selected' : '' ?>>SMTP (recommended for better deliverability)</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="smtp_from_name" data-i18n="label_from_name">From Name</label>
+                        <input type="text" id="smtp_from_name" name="smtp_from_name"
+                               placeholder="<?= e($settings['business_name'] ?? '') ?>"
+                               value="<?= e($settings['smtp_from_name'] ?? '') ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="smtp_from_email" data-i18n="label_from_email">From Email</label>
+                        <input type="email" id="smtp_from_email" name="smtp_from_email"
+                               placeholder="<?= e($settings['business_email'] ?? '') ?>"
+                               value="<?= e($settings['smtp_from_email'] ?? '') ?>">
+                    </div>
+                </div>
+
+                <div id="smtp-fields" style="display: <?= ($settings['mail_method'] ?? '') === 'smtp' ? 'block' : 'none' ?>">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="smtp_host" data-i18n="label_smtp_host">SMTP Host</label>
+                            <input type="text" id="smtp_host" name="smtp_host" placeholder="smtp.gmail.com"
+                                   value="<?= e($settings['smtp_host'] ?? '') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label for="smtp_port" data-i18n="label_smtp_port">SMTP Port</label>
+                            <input type="number" id="smtp_port" name="smtp_port" min="1" max="65535"
+                                   value="<?= e($settings['smtp_port'] ?? '587') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label for="smtp_encryption" data-i18n="label_smtp_encryption">Encryption</label>
+                            <select id="smtp_encryption" name="smtp_encryption">
+                                <option value="tls" <?= ($settings['smtp_encryption'] ?? 'tls') === 'tls' ? 'selected' : '' ?>>TLS</option>
+                                <option value="ssl" <?= ($settings['smtp_encryption'] ?? '') === 'ssl' ? 'selected' : '' ?>>SSL</option>
+                                <option value="" <?= ($settings['smtp_encryption'] ?? '') === '' ? 'selected' : '' ?>>None</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="smtp_username" data-i18n="label_smtp_username">SMTP Username</label>
+                            <input type="text" id="smtp_username" name="smtp_username" autocomplete="off"
+                                   value="<?= e($settings['smtp_username'] ?? '') ?>">
+                        </div>
+                        <div class="form-group">
+                            <label for="smtp_password" data-i18n="label_smtp_password">SMTP Password <small><?= !empty($settings['smtp_password'] ?? '') ? '(leave blank to keep current)' : '' ?></small></label>
+                            <input type="password" id="smtp_password" name="smtp_password" autocomplete="new-password">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons-round">save</span> <span data-i18n="btn_save_email">Save Email Settings</span>
+            </button>
+        </div>
+    </form>
 <?php endif; ?>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

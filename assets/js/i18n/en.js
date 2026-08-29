@@ -152,6 +152,7 @@ window.I18N_LOCALES['en'] = {
     status_rejected:         'Rejected',
     btn_save_estimate:       'Save Estimate',
     btn_print_pdf:           'Print / PDF',
+    btn_email_client:        'Email to Client',
     btn_duplicate:           'Duplicate',
     btn_delete:              'Delete',
 
@@ -250,6 +251,17 @@ window.I18N_LOCALES['en'] = {
     hint_keep_current:       '— leave blank to keep current',
     label_confirm_estimator_pin: 'Confirm Estimator PIN',
     btn_save_estimator:      'Save Estimator Settings',
+    tab_email:               'Email',
+    section_email_settings:  'Email Settings',
+    label_mail_method:       'Sending Method',
+    label_from_name:         'From Name',
+    label_from_email:        'From Email',
+    label_smtp_host:         'SMTP Host',
+    label_smtp_port:         'SMTP Port',
+    label_smtp_encryption:   'Encryption',
+    label_smtp_username:     'SMTP Username',
+    label_smtp_password:     'SMTP Password',
+    btn_save_email:          'Save Email Settings',
 
     // ── Login ─────────────────────────────────────────────────────
     login_subtitle:          'Pool Cost Estimator',
@@ -269,4 +281,19 @@ window.I18N_LOCALES['en'] = {
     toast_client_saved:      'Client saved!',
     toast_client_deleted:    'Client deleted.',
     toast_not_found:         'Not found.',
+
+    // ── Print / Email estimate page (UI chrome only — not the document/email sent to clients) ──
+    print_btn_back:          'Back',
+    print_btn_print:         'Print',
+    print_btn_download_pdf:  'Download PDF',
+    print_email_modal_title: 'Email Estimate {number}',
+    print_label_recipient:   'Recipient Email',
+    print_label_subject:     'Subject',
+    print_label_message:     'Message',
+    btn_send:                'Send',
+    print_err_no_recipient:  'Please enter a recipient email address.',
+    print_status_generating: 'Generating PDF…',
+    print_status_sending:    'Sending email…',
+    print_status_success:    'Email sent successfully!',
+    print_status_fail:       'Failed to send email. Please try again.',
 };

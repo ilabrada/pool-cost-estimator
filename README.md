@@ -18,8 +18,8 @@ A mobile-first web application for estimating swimming pool construction costs. 
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | PHP 8.0+ with PDO |
-| Database | MySQL 5.7+ / MariaDB 10.3+ |
+| Backend | PHP 8.3 with PDO |
+| Database | MariaDB 11.8.x (matching Hostinger) |
 | Frontend | HTML5, CSS3 (responsive), Vanilla JavaScript |
 | PDF | html2pdf.js (client-side, no server library needed) |
 | Icons | Google Material Icons (CDN) |
@@ -27,9 +27,10 @@ A mobile-first web application for estimating swimming pool construction costs. 
 
 ## Requirements
 
-- PHP 8.0 or higher
-- MySQL 5.7+ or MariaDB 10.3+
-- Apache with mod_rewrite (standard on Hostinger)
+- PHP 8.3
+- MariaDB 11.8.x
+- Web server support for PHP (Herd Basic provides the local runtime)
+- Apache with mod_rewrite is standard on Hostinger
 
 ## Installation
 
@@ -44,19 +45,19 @@ In your hosting panel (e.g., Hostinger hPanel):
 
 **Do not edit `includes/config.php` directly.** It contains `{{TOKEN}}` placeholders that are replaced automatically by the CI/CD pipeline on deployment (see [CI/CD & Token Replacement](#cicd--token-replacement)).
 
-For local development, create `includes/config.local.php` instead — see [Local Development with MAMP](#local-development-with-mamp) below.
+For local development, create `includes/config.local.php` instead — see [Local Development with Herd + MariaDB](#local-development-with-herd--mariadb) below.
 
 For production credentials, store them as [GitHub Actions secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) — never commit them to the repository.
 
-### iWebFusion Hosting (Default Values)
+### Hostinger Hosting (Example Values)
 
-Reference values for the iWebFusion environment (set the actual password in GitHub secrets, not here):
+Example values for a Hostinger MySQL database setup (store the actual credentials in GitHub secrets or your hosting panel, not in the repo):
 
 ```php
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'ttshosti_pool_estimator');
-define('DB_USER', 'ttshosti_root');
-define('DB_PASS', 'lung-widow-hacker');
+define('DB_NAME', 'pool_estimator');
+define('DB_USER', 'u123456789_pool_estimator');
+define('DB_PASS', 'your-real-db-password');
 ```
 
 Also confirm the timezone:
@@ -86,69 +87,119 @@ After setup, **delete `install.php`** from your server for security.
 
 Visit `https://yourdomain.com/` and enter your PIN.
 
-## Local Development with MAMP
+## Local Development with Homebrew PHP + MariaDB
 
-MAMP is the easiest way to run this app on your Mac before uploading to Hostinger.
+This project is designed to match your hosting environment: **PHP 8.3** and **MariaDB 11.8.x**.
 
-### 1. Install MAMP
+### 1. Install the local stack
 
-Download and install **MAMP Free** from [mamp.info](https://www.mamp.info/). No paid version needed.
+Install the following on your Mac:
 
-### 2. Point MAMP to Your Project Folder *(recommended)*
+1. **PHP 8.3**
+   - Install PHP with Homebrew:
+     ```bash
+     brew install php@8.3
+     ```
+   - Make sure the PHP binary resolves in your shell:
+     ```bash
+     php -v
+     ```
+   - If needed, add the Homebrew PHP bin directory to your PATH.
 
-Instead of copying files, point MAMP directly to your repository so any edits in VS Code are served immediately — no syncing needed:
+2. **Homebrew MariaDB 11.8.x**
+   - Install MariaDB with Homebrew:
+     ```bash
+     brew install mariadb@11.8
+     brew services start mariadb@11.8
+     ```
+   - Start the MariaDB service locally
 
-1. Open **MAMP** → Click **Preferences** → Click the **Web Server** tab
-2. Change **Document Root** to your project folder:
-   ```
-   /Users/ivan/Documents/repository/pool-cost-estimator
-   ```
-3. Click **OK**
+Example commands:
 
-> **Alternative — Symbolic Link:** If you use MAMP for multiple projects and prefer to keep its default root, run this once in Terminal:
-> ```bash
-> ln -s /Users/ivan/Documents/repository/pool-cost-estimator /Applications/MAMP/htdocs/pool-cost-estimator
-> ```
-> Then access the app at `http://localhost:8888/pool-cost-estimator/` instead of `http://localhost:8888/`.
+```bash
+php -v
+mariadb --version
+```
 
-### 3. Start MAMP Servers
+You should see:
+- PHP 8.3.x
+- MariaDB 11.8.x
 
-Open the MAMP application and click **Start Servers**. Both the Apache and MySQL indicators should turn green.
+### 2. Create the local database
 
-### 4. Create the Database
+Open the MariaDB shell:
 
-1. Open **phpMyAdmin** at [http://localhost:8888/phpmyadmin](http://localhost:8888/phpmyadmin)
-2. Log in with username `root` and password `root`
-3. Click **New** in the left sidebar
-4. Name the database `pool_estimator` and set collation to `utf8mb4_unicode_ci`
-5. Click **Create**
+```bash
+mariadb
+```
 
-### 5. Create `includes/config.local.php`
+Create the database:
+
+```sql
+CREATE DATABASE pool_estimator CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+Create the app user and grant access. Use the same password you plan to put in `DB_PASS` in the local config file:
+
+```sql
+CREATE USER 'pool_estimator'@'localhost' IDENTIFIED BY 'your_local_password';
+GRANT ALL PRIVILEGES ON pool_estimator.* TO 'pool_estimator'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+> The password in `IDENTIFIED BY 'your_local_password'` must match the value used in `DB_PASS` in `includes/config.local.php`.
+
+### 3. Configure the local app connection
 
 `config.php` contains CI/CD token placeholders (`{{DB_HOST}}` etc.) and must not be edited. Instead, create `includes/config.local.php` with your local credentials — this file is gitignored and loaded automatically when present:
 
 ```php
 <?php
-// Local development credentials — never commit this file.
-define('DB_HOST', 'localhost');
-define('DB_PORT', '8889');        // MAMP uses port 8889 for MySQL
+define('DB_HOST', '127.0.0.1');
+define('DB_PORT', '3306');
 define('DB_NAME', 'pool_estimator');
-define('DB_USER', 'root');
-define('DB_PASS', 'root');        // MAMP default password
-
-// Enable verbose errors locally
-ini_set('display_errors', '1');
+define('DB_USER', 'pool_estimator');
+define('DB_PASS', 'your_local_password');
 ```
+
+The password above must match the password used in the MariaDB `CREATE USER` statement exactly.
 
 The constants defined here take priority over the token placeholders in `config.php` via `defined() || define()` guards, so the `{{TOKEN}}` strings are never evaluated.
 
-### 6. Run the Installer
+### 4. Serve the app locally
 
-Visit [http://localhost:8888/pool-cost-estimator/install.php](http://localhost:8888/pool-cost-estimator/install.php) and complete the 3 steps.
+You do not need Herd or any special local server manager. Use the PHP built-in web server from your Homebrew PHP 8.3 install:
 
-### 7. Access the App
+```bash
+cd /path/to/pool-cost-estimator
+php -S localhost:8000
+```
 
-Go to [http://localhost:8888/pool-cost-estimator/](http://localhost:8888/pool-cost-estimator/) and log in with the PIN you just set.
+Then open the app in your browser:
+
+```text
+http://localhost:8000
+```
+
+If you prefer, you can also point any local web server at the project folder instead.
+
+### 5. Run the installer
+
+Visit the app URL and open:
+
+```text
+http://localhost:8000/install.php
+```
+
+Complete the 3-step setup wizard:
+
+1. **Step 1** — tests the database connection
+2. **Step 2** — creates the tables and default data
+3. **Step 3** — sets the business name and access PIN
+
+### 6. Access the app
+
+After installation, visit the project URL and log in with the PIN you set during setup.
 
 > No manual revert needed before deploying. `config.local.php` only exists on your machine; the CI/CD pipeline works directly from the token placeholders in `config.php`.
 
@@ -168,9 +219,11 @@ The deploy step replaces the `{{TOKEN}}` placeholders in `includes/config.php` w
 ```yaml
 - name: Replace config tokens
   run: |
-    sed -i 's/{{DB_HOST}}/${{ secrets.IWEBFUSION_DB_HOST }}/g' includes/config.php
-    sed -i 's/{{DB_NAME}}/${{ secrets.IWEBFUSION_DB_NAME }}/g' includes/config.php
-    ...
+    sed -i 's/{{DB_HOST}}/${{ secrets.PROD_DB_HOST }}/g' includes/config.php
+    sed -i 's/{{DB_NAME}}/${{ secrets.PROD_DB_NAME }}/g' includes/config.php
+    sed -i 's/{{DB_USER}}/${{ secrets.PROD_DB_USERNAME }}/g' includes/config.php
+    sed -i 's/{{DB_PASS}}/${{ secrets.PROD_DB_PASS }}/g' includes/config.php
+    sed -i 's/{{DB_PORT}}/${{ secrets.PROD_DB_PORT }}/g' includes/config.php
 ```
 
 This means:
@@ -184,19 +237,19 @@ Go to your repository → **Settings → Secrets and variables → Actions** and
 
 | Secret name | Description |
 |---|---|
-| `IWEBFUSION_DB_HOST` | Production DB host |
-| `IWEBFUSION_DB_NAME` | Production DB name |
-| `IWEBFUSION_DB_USERNAME` | Production DB user |
-| `IWEBFUSION_DB_PASS` | Production DB password |
-| `IWEBFUSION_DB_PORT` | Production DB port |
-| `IWEBFUSION_DEV_DB_HOST` | Dev/QA DB host |
-| `IWEBFUSION_DEV_DB_NAME` | Dev/QA DB name |
-| `IWEBFUSION_DEV_DB_USERNAME` | Dev/QA DB user |
-| `IWEBFUSION_DEV_DB_PASS` | Dev/QA DB password |
-| `IWEBFUSION_DEV_DB_PORT` | Dev/QA DB port |
-| `FTP_SERVER` | FTP host |
-| `FTP_USERNAME` | FTP username |
-| `FTP_PASSWORD` | FTP password |
+| `PROD_DB_HOST` | Production DB host |
+| `PROD_DB_NAME` | Production DB name |
+| `PROD_DB_USERNAME` | Production DB user |
+| `PROD_DB_PASS` | Production DB password |
+| `PROD_DB_PORT` | Production DB port |
+| `HOSTINGER_DB_HOST` | Dev/QA DB host |
+| `HOSTINGER_DB_NAME` | Dev/QA DB name |
+| `HOSTINGER_DB_USERNAME` | Dev/QA DB user |
+| `HOSTINGER_DB_PASS` | Dev/QA DB password |
+| `HOSTINGER_DB_PORT` | Dev/QA DB port |
+| `HOSTINGER_FTP_SERVER` | FTP host |
+| `HOSTINGER_FTP_USERNAME` | FTP username |
+| `HOSTINGER_FTP_PASSWORD` | FTP password |
 
 ---
 
