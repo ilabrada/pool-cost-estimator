@@ -141,6 +141,7 @@ window.I18N_LOCALES['es'] = {
     status_rejected:         'Rechazada',
     btn_save_estimate:       'Guardar Cotización',
     btn_print_pdf:           'Imprimir / PDF',
+    btn_email_client:        'Enviar por Correo',
     btn_duplicate:           'Duplicar',
     btn_delete:              'Eliminar',
 
@@ -237,6 +238,17 @@ window.I18N_LOCALES['es'] = {
     hint_keep_current:       '— dejar en blanco para mantener el actual',
     label_confirm_estimator_pin: 'Confirmar PIN del Estimador',
     btn_save_estimator:      'Guardar Configuración del Estimador',
+    tab_email:               'Correo',
+    section_email_settings:  'Configuración de Correo',
+    label_mail_method:       'Método de Envío',
+    label_from_name:         'Nombre del Remitente',
+    label_from_email:        'Correo del Remitente',
+    label_smtp_host:         'Servidor SMTP',
+    label_smtp_port:         'Puerto SMTP',
+    label_smtp_encryption:   'Encriptación',
+    label_smtp_username:     'Usuario SMTP',
+    label_smtp_password:     'Contraseña SMTP',
+    btn_save_email:          'Guardar Configuración de Correo',
 
     // ── Login ─────────────────────────────────────────────────────
     login_subtitle:          'Estimador de Costos de Piscinas',

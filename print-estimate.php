@@ -68,10 +68,89 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
 
         .btn-print { background: #0077B6; color: white; }
         .btn-pdf { background: #06D6A0; color: white; }
+        .btn-email { background: #EF476F; color: white; }
         .btn-back { background: #6C757D; color: white; }
         .btn-print:hover { background: #023E8A; }
         .btn-pdf:hover { background: #05b588; }
+        .btn-email:hover { background: #d13e60; }
         .btn-back:hover { background: #565e64; }
+        .btn-print:disabled, .btn-pdf:disabled, .btn-email:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Email modal */
+        .email-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .email-modal-overlay.open { display: flex; }
+        .email-modal {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        .email-modal h2 {
+            font-size: 1.15rem;
+            margin-bottom: 1rem;
+        }
+        .email-modal label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 0.75rem 0 0.35rem;
+        }
+        .email-modal input, .email-modal textarea {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+        .email-modal textarea { resize: vertical; }
+        .email-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 1.25rem;
+        }
+        .email-modal-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            padding: 0.625rem 1.25rem;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .email-modal-actions .btn-secondary { background: #e9ecef; color: #212529; }
+        .email-modal-actions .btn-secondary:hover { background: #d3d8de; }
+        .email-modal-actions .btn-primary { background: #eb6e1f; color: white; }
+        .email-modal-actions .btn-primary:hover { background: #c45a14; }
+        .email-modal-actions .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .email-modal-status {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+        }
+        .email-modal-status.error { color: #EF476F; }
+        .email-modal-status.success { color: #06D6A0; }
 
         .estimate-document {
             max-width: 800px;
@@ -320,6 +399,34 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
     <button class="btn-back" onclick="window.close()">&#8592; Back</button>
     <button class="btn-print" onclick="window.print()">🖨️ Print</button>
     <button class="btn-pdf" onclick="downloadPDF()">📄 Download PDF</button>
+    <button class="btn-email" onclick="openEmailModal()">✉️ Email to Client</button>
+</div>
+
+<div class="email-modal-overlay" id="email-modal-overlay">
+    <div class="email-modal">
+        <h2>Email Estimate <?= e($estimate['estimate_number']) ?></h2>
+
+        <label for="email-recipient">Recipient Email</label>
+        <input type="email" id="email-recipient" value="<?= e($estimate['client_email'] ?? '') ?>" placeholder="client@example.com" required>
+
+        <label for="email-subject">Subject</label>
+        <input type="text" id="email-subject" value="Your Estimate <?= e($estimate['estimate_number']) ?>">
+
+        <label for="email-message">Message</label>
+        <textarea id="email-message" rows="5">Hi <?= e($estimate['client_name'] ?? '') ?>,
+
+Please find your pool estimate attached. Let us know if you have any questions!
+
+Thank you,
+<?= e($settings['business_name'] ?? 'Pool Builder') ?></textarea>
+
+        <div class="email-modal-status" id="email-modal-status"></div>
+
+        <div class="email-modal-actions">
+            <button class="btn btn-secondary" type="button" onclick="closeEmailModal()">Cancel</button>
+            <button class="btn btn-primary" type="button" id="email-send-btn" onclick="sendEstimateEmail()">Send</button>
+        </div>
+    </div>
 </div>
 
 <div class="estimate-document" id="estimate-pdf">
@@ -505,16 +612,81 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
 </div>
 
 <script>
+const PDF_OPTIONS = {
+    margin:       [0.5, 0.5, 0.5, 0.5],
+    filename:     'Estimate-<?= e($estimate['estimate_number']) ?>.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+};
+
 function downloadPDF() {
     const element = document.getElementById('estimate-pdf');
-    const opt = {
-        margin:       [0.5, 0.5, 0.5, 0.5],
-        filename:     'Estimate-<?= e($estimate['estimate_number']) ?>.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
+    html2pdf().set(PDF_OPTIONS).from(element).save();
+}
+
+function openEmailModal() {
+    document.getElementById('email-modal-overlay').classList.add('open');
+}
+
+function closeEmailModal() {
+    document.getElementById('email-modal-overlay').classList.remove('open');
+    document.getElementById('email-modal-status').textContent = '';
+    document.getElementById('email-modal-status').className = 'email-modal-status';
+}
+
+<?php if (($_GET['email'] ?? '') === '1'): ?>
+openEmailModal();
+<?php endif; ?>
+
+function sendEstimateEmail() {
+    const recipient = document.getElementById('email-recipient').value.trim();
+    const subject = document.getElementById('email-subject').value.trim();
+    const message = document.getElementById('email-message').value.trim();
+    const statusEl = document.getElementById('email-modal-status');
+    const sendBtn = document.getElementById('email-send-btn');
+
+    if (!recipient) {
+        statusEl.textContent = 'Please enter a recipient email address.';
+        statusEl.className = 'email-modal-status error';
+        return;
+    }
+
+    sendBtn.disabled = true;
+    statusEl.className = 'email-modal-status';
+    statusEl.textContent = 'Generating PDF…';
+
+    const element = document.getElementById('estimate-pdf');
+    html2pdf().set(PDF_OPTIONS).from(element).outputPdf('blob').then(function (blob) {
+        statusEl.textContent = 'Sending email…';
+
+        const formData = new FormData();
+        formData.append('<?= CSRF_TOKEN_NAME ?>', '<?= e(generateCSRFToken()) ?>');
+        formData.append('id', '<?= (int)$id ?>');
+        formData.append('recipient_email', recipient);
+        formData.append('recipient_name', <?= json_encode($estimate['client_name'] ?? '') ?>);
+        formData.append('subject', subject);
+        formData.append('message', message);
+        formData.append('pdf', blob, PDF_OPTIONS.filename);
+
+        return fetch('send-estimate-email.php', { method: 'POST', body: formData });
+    }).then(function (res) {
+        return res.json();
+    }).then(function (data) {
+        sendBtn.disabled = false;
+        if (data.success) {
+            statusEl.textContent = 'Email sent successfully!';
+            statusEl.className = 'email-modal-status success';
+            setTimeout(closeEmailModal, 1500);
+        } else {
+            statusEl.textContent = data.error || 'Failed to send email.';
+            statusEl.className = 'email-modal-status error';
+        }
+    }).catch(function () {
+        sendBtn.disabled = false;
+        statusEl.textContent = 'Failed to send email. Please try again.';
+        statusEl.className = 'email-modal-status error';
+    });
 }
 </script>
 
