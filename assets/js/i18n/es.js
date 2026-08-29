@@ -198,6 +198,21 @@ window.I18N_LOCALES['es'] = {
     no_audit_msg:            'La actividad aparecerá aquí cuando se guarden cotizaciones o clientes.',
     filter_all_types:        'Todos los tipos',
     filter_estimates:        'Cotizaciones',
+
+    // ── Print / Email estimate page (UI chrome only — not the document/email sent to clients) ──
+    print_btn_back:          'Atrás',
+    print_btn_print:         'Imprimir',
+    print_btn_download_pdf:  'Descargar PDF',
+    print_email_modal_title: 'Enviar Cotización {number} por Correo',
+    print_label_recipient:   'Correo del Destinatario',
+    print_label_subject:     'Asunto',
+    print_label_message:     'Mensaje',
+    btn_send:                'Enviar',
+    print_err_no_recipient:  'Por favor ingrese un correo electrónico del destinatario.',
+    print_status_generating: 'Generando PDF…',
+    print_status_sending:    'Enviando correo…',
+    print_status_success:    '¡Correo enviado exitosamente!',
+    print_status_fail:       'No se pudo enviar el correo. Inténtalo de nuevo.',
     filter_settings:         'Configuración',
 
     page_release_notes:      'Notas de Versión',

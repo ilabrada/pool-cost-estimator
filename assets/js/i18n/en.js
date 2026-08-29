@@ -281,4 +281,19 @@ window.I18N_LOCALES['en'] = {
     toast_client_saved:      'Client saved!',
     toast_client_deleted:    'Client deleted.',
     toast_not_found:         'Not found.',
+
+    // ── Print / Email estimate page (UI chrome only — not the document/email sent to clients) ──
+    print_btn_back:          'Back',
+    print_btn_print:         'Print',
+    print_btn_download_pdf:  'Download PDF',
+    print_email_modal_title: 'Email Estimate {number}',
+    print_label_recipient:   'Recipient Email',
+    print_label_subject:     'Subject',
+    print_label_message:     'Message',
+    btn_send:                'Send',
+    print_err_no_recipient:  'Please enter a recipient email address.',
+    print_status_generating: 'Generating PDF…',
+    print_status_sending:    'Sending email…',
+    print_status_success:    'Email sent successfully!',
+    print_status_fail:       'Failed to send email. Please try again.',
 };

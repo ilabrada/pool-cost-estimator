@@ -418,23 +418,23 @@ $pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleC
 <body>
 
 <div class="print-controls">
-    <button class="btn-back" onclick="window.close()">&#8592; Back</button>
-    <button class="btn-print" onclick="window.print()">🖨️ Print</button>
-    <button class="btn-pdf" onclick="downloadPDF()">📄 Download PDF</button>
-    <button class="btn-email" onclick="openEmailModal()">✉️ Email to Client</button>
+    <button class="btn-back" onclick="window.close()">&#8592; <span data-i18n="print_btn_back">Back</span></button>
+    <button class="btn-print" onclick="window.print()">🖨️ <span data-i18n="print_btn_print">Print</span></button>
+    <button class="btn-pdf" onclick="downloadPDF()">📄 <span data-i18n="print_btn_download_pdf">Download PDF</span></button>
+    <button class="btn-email" onclick="openEmailModal()">✉️ <span data-i18n="btn_email_client">Email to Client</span></button>
 </div>
 
 <div class="email-modal-overlay" id="email-modal-overlay">
     <div class="email-modal">
-        <h2>Email Estimate <?= e($estimate['estimate_number']) ?></h2>
+        <h2 id="email-modal-title">Email Estimate <?= e($estimate['estimate_number']) ?></h2>
 
-        <label for="email-recipient">Recipient Email</label>
+        <label for="email-recipient" data-i18n="print_label_recipient">Recipient Email</label>
         <input type="email" id="email-recipient" value="<?= e($estimate['client_email'] ?? '') ?>" placeholder="client@example.com" required>
 
-        <label for="email-subject">Subject</label>
+        <label for="email-subject" data-i18n="print_label_subject">Subject</label>
         <input type="text" id="email-subject" value="Your Estimate <?= e($estimate['estimate_number']) ?>">
 
-        <label for="email-message">Message</label>
+        <label for="email-message" data-i18n="print_label_message">Message</label>
         <textarea id="email-message" rows="5">Hi <?= e($estimate['client_name'] ?? '') ?>,
 
 Please find your pool estimate attached. Let us know if you have any questions!
@@ -445,8 +445,8 @@ Thank you,
         <div class="email-modal-status" id="email-modal-status"></div>
 
         <div class="email-modal-actions">
-            <button class="btn btn-secondary" type="button" onclick="closeEmailModal()">Cancel</button>
-            <button class="btn btn-primary" type="button" id="email-send-btn" onclick="sendEstimateEmail()">Send</button>
+            <button class="btn btn-secondary" type="button" onclick="closeEmailModal()" data-i18n="btn_cancel">Cancel</button>
+            <button class="btn btn-primary" type="button" id="email-send-btn" onclick="sendEstimateEmail()" data-i18n="btn_send">Send</button>
         </div>
     </div>
 </div>
@@ -633,6 +633,9 @@ Thank you,
     </div>
 </div>
 
+<script src="assets/js/i18n/en.js"></script>
+<script src="assets/js/i18n/es.js"></script>
+<script src="assets/js/i18n/i18n.js"></script>
 <script>
 const PDF_OPTIONS = {
     margin:       [0.5, 0.5, 0.5, 0.5],
@@ -642,6 +645,16 @@ const PDF_OPTIONS = {
     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
     pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr', '.doc-header', '.doc-info-box', '.doc-specs', '.doc-totals', '.doc-totals-row', '.doc-notes', '.doc-footer'] }
 };
+
+const ESTIMATE_NUMBER = <?= json_encode($estimate['estimate_number']) ?>;
+
+function renderPrintTranslations() {
+    // Email modal title (UI only — the sent email subject/body stay in the business's own language)
+    const emailTitle = document.getElementById('email-modal-title');
+    if (emailTitle) emailTitle.textContent = i18n('print_email_modal_title', { number: ESTIMATE_NUMBER });
+}
+
+document.addEventListener('i18n:applied', renderPrintTranslations);
 
 function downloadPDF() {
     const element = document.getElementById('estimate-pdf');
@@ -670,18 +683,18 @@ function sendEstimateEmail() {
     const sendBtn = document.getElementById('email-send-btn');
 
     if (!recipient) {
-        statusEl.textContent = 'Please enter a recipient email address.';
+        statusEl.textContent = i18n('print_err_no_recipient');
         statusEl.className = 'email-modal-status error';
         return;
     }
 
     sendBtn.disabled = true;
     statusEl.className = 'email-modal-status';
-    statusEl.textContent = 'Generating PDF…';
+    statusEl.textContent = i18n('print_status_generating');
 
     const element = document.getElementById('estimate-pdf');
     html2pdf().set(PDF_OPTIONS).from(element).outputPdf('blob').then(function (blob) {
-        statusEl.textContent = 'Sending email…';
+        statusEl.textContent = i18n('print_status_sending');
 
         const formData = new FormData();
         formData.append('<?= CSRF_TOKEN_NAME ?>', '<?= e(generateCSRFToken()) ?>');
@@ -698,16 +711,16 @@ function sendEstimateEmail() {
     }).then(function (data) {
         sendBtn.disabled = false;
         if (data.success) {
-            statusEl.textContent = 'Email sent successfully!';
+            statusEl.textContent = i18n('print_status_success');
             statusEl.className = 'email-modal-status success';
             setTimeout(closeEmailModal, 1500);
         } else {
-            statusEl.textContent = data.error || 'Failed to send email.';
+            statusEl.textContent = data.error || i18n('print_status_fail');
             statusEl.className = 'email-modal-status error';
         }
     }).catch(function () {
         sendBtn.disabled = false;
-        statusEl.textContent = 'Failed to send email. Please try again.';
+        statusEl.textContent = i18n('print_status_fail');
         statusEl.className = 'email-modal-status error';
     });
 }
