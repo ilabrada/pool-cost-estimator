@@ -21,12 +21,20 @@ $settings = getSettings();
 $items = $estimate['items'] ?? [];
 $unit = $settings['measurement_unit'] ?? 'ft';
 $currency = $settings['currency_symbol'] ?? '$';
+$poolDetailItems = [];
+$customItems = [];
+$featureItems = [];
 
-$pdfVisibleCategories = ['custom', 'features', 'deck', 'fence'];
-$pdfItems = array_values(array_filter($items, function ($item) use ($pdfVisibleCategories) {
+foreach ($items as $item) {
     $category = $item['category'] ?? 'general';
-    return in_array($category, $pdfVisibleCategories, true);
-}));
+    if ($category === 'custom') {
+        $customItems[] = $item;
+    } elseif (in_array($category, ['features', 'deck', 'fence'], true)) {
+        $featureItems[] = $item;
+    } else {
+        $poolDetailItems[] = $item;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -526,27 +534,10 @@ Thank you,
         </div>
     </div>
 
-    <!-- Features Summary -->
-    <?php
-    $features = [];
-    if ($estimate['has_jacuzzi']) $features[] = 'Spa/Jacuzzi (' . ucfirst($estimate['jacuzzi_size']) . ')';
-    if ($estimate['num_lights'] > 0) $features[] = $estimate['num_lights'] . ' LED Light(s)';
-    if ($estimate['has_heating']) $features[] = ucfirst($estimate['heating_type']) . ' Heating';
-    if ($estimate['has_waterfall']) $features[] = 'Rock Waterfall';
-    if ($estimate['has_water_feature']) $features[] = 'Water Feature';
-    if ($estimate['has_auto_cover']) $features[] = 'Automatic Cover';
-    if ($estimate['has_pool_cleaner']) $features[] = 'Automatic Cleaner';
-    if ($estimate['has_deck']) $features[] = ucfirst($estimate['deck_material']) . ' Deck (' . $estimate['deck_area'] . ' sq ft)';
-    if ($estimate['has_fence']) $features[] = ucfirst($estimate['fence_type']) . ' Fence (' . $estimate['fence_length'] . ' ft)';
-    ?>
-    <?php if (!empty($features)): ?>
-        <div class="doc-info-box" style="margin-bottom: 1.5rem;">
-            <h3>Included Features</h3>
-            <p><?= e(implode(' • ', $features)) ?></p>
-        </div>
-    <?php endif; ?>
-
     <!-- Cost Breakdown Table -->
+    <div class="doc-info-box" style="margin-bottom: 0.5rem;">
+        <h3>Pool Details</h3>
+    </div>
     <table class="doc-table">
         <thead>
             <tr>
@@ -557,28 +548,43 @@ Thank you,
             </tr>
         </thead>
         <tbody>
-            <?php
-            $currentPdfGroup = null;
-            foreach ($pdfItems as $item):
-                $cat = $item['category'] ?? 'general';
-                $groupKey = ($cat === 'custom') ? 'custom' : 'features';
-                if ($currentPdfGroup !== $groupKey):
-                    $currentPdfGroup = $groupKey;
-            ?>
-                <tr class="category-row">
-                    <td colspan="4"><?= e($groupKey === 'custom' ? 'Custom Items' : 'Features & Add-ons') ?></td>
-                </tr>
-            <?php endif; ?>
-            <tr>
-                <td><?= e($item['description']) ?></td>
-                <td><?= rtrim(rtrim(number_format((float)$item['quantity'], 2), '0'), '.') ?> <?= e($item['unit'] ?? '') ?></td>
-                <td><?= $currency . number_format((float)$item['unit_price'], 2) ?></td>
-                <td><?= $currency . number_format((float)$item['total'], 2) ?></td>
-            </tr>
-            <?php endforeach; ?>
-            <?php if (empty($pdfItems)): ?>
+            <?php foreach ($poolDetailItems as $item): ?>
                 <tr>
-                    <td colspan="4" style="text-align:center; color:#6C757D; padding:1rem;">No itemized add-ons for this estimate.</td>
+                    <td><?= e($item['description']) ?></td>
+                    <td><?= rtrim(rtrim(number_format((float)$item['quantity'], 2), '0'), '.') ?> <?= e($item['unit'] ?? '') ?></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            <?php endforeach; ?>
+            <?php if (!empty($customItems)): ?>
+                <tr class="category-row">
+                    <td colspan="4">Custom Items</td>
+                </tr>
+                <?php foreach ($customItems as $item): ?>
+                    <tr>
+                        <td><?= e($item['description']) ?></td>
+                        <td><?= rtrim(rtrim(number_format((float)$item['quantity'], 2), '0'), '.') ?> <?= e($item['unit'] ?? '') ?></td>
+                        <td><?= $currency . number_format((float)$item['unit_price'], 2) ?></td>
+                        <td><?= $currency . number_format((float)$item['total'], 2) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+            <?php if (!empty($featureItems)): ?>
+                <tr class="category-row">
+                    <td colspan="4">Features &amp; Add-ons</td>
+                </tr>
+                <?php foreach ($featureItems as $item): ?>
+                    <tr>
+                        <td><?= e($item['description']) ?></td>
+                        <td><?= rtrim(rtrim(number_format((float)$item['quantity'], 2), '0'), '.') ?> <?= e($item['unit'] ?? '') ?></td>
+                        <td><?= $currency . number_format((float)$item['unit_price'], 2) ?></td>
+                        <td><?= $currency . number_format((float)$item['total'], 2) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+            <?php if (empty($poolDetailItems) && empty($customItems) && empty($featureItems)): ?>
+                <tr>
+                    <td colspan="4" style="text-align:center; color:#6C757D; padding:1rem;">No itemized details for this estimate.</td>
                 </tr>
             <?php endif; ?>
         </tbody>
