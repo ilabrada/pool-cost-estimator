@@ -10,6 +10,7 @@ $pageTitleKey = $pageTitleKey ?? [
     'dashboard'     => 'page_dashboard',
     'audit-log'     => 'page_audit_log',
     'settings'      => 'page_settings',
+    'estimators'    => 'page_estimators',
     'release-notes' => 'page_release_notes',
 ][$currentPage] ?? '';
 ?>
@@ -61,6 +62,10 @@ $pageTitleKey = $pageTitleKey ?? [
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <span class="sidebar-brand"><?= e(getSetting('business_name', APP_NAME)) ?></span>
+        <span class="sidebar-user">
+            <span class="material-icons-round">account_circle</span>
+            <?= e(currentUserName()) ?>
+        </span>
     </div>
     <ul class="sidebar-nav">
         <li class="<?= $currentPage === 'dashboard' ? 'active' : '' ?>">
@@ -81,13 +86,19 @@ $pageTitleKey = $pageTitleKey ?? [
                 <span data-i18n="nav_clients">Clients</span>
             </a>
         </li>
+        <?php if (isAdmin()): ?>
         <li class="<?= $currentPage === 'audit-log' ? 'active' : '' ?>">
             <a href="audit-log.php">
                 <span class="material-icons-round">history</span>
                 <span data-i18n="nav_audit_log">Audit Log</span>
             </a>
         </li>
-        <?php if (isAdmin()): ?>
+        <li class="<?= $currentPage === 'estimators' ? 'active' : '' ?>">
+            <a href="estimators.php">
+                <span class="material-icons-round">badge</span>
+                <span data-i18n="nav_estimators">Estimators</span>
+            </a>
+        </li>
         <li class="<?= $currentPage === 'settings' ? 'active' : '' ?>">
             <a href="settings.php">
                 <span class="material-icons-round">settings</span>
@@ -125,11 +136,11 @@ $pageTitleKey = $pageTitleKey ?? [
         <span class="material-icons-round">people</span>
         <span data-i18n="nav_clients">Clients</span>
     </a>
+    <?php if (isAdmin()): ?>
     <a href="audit-log.php" class="bottom-nav-item <?= $currentPage === 'audit-log' ? 'active' : '' ?>">
         <span class="material-icons-round">history</span>
         <span data-i18n="nav_log">Log</span>
     </a>
-    <?php if (isAdmin()): ?>
     <a href="settings.php" class="bottom-nav-item <?= $currentPage === 'settings' ? 'active' : '' ?>">
         <span class="material-icons-round">settings</span>
         <span data-i18n="nav_settings">Settings</span>

@@ -145,6 +145,9 @@ endif; ?>
                 </div>
                 <div class="estimate-card-footer">
                     <span class="estimate-date"><?= formatDate($est['created_at']) ?></span>
+                    <?php if (isAdmin()): ?>
+                        <span class="owner-badge"><span class="material-icons-round">badge</span><?= $est['estimator_name'] ? e($est['estimator_name']) : '<span data-i18n="owner_admin">Admin</span>' ?></span>
+                    <?php endif; ?>
                     <span class="estimate-total"><?= formatCurrency((float)$est['total']) ?></span>
                 </div>
             </a>

@@ -7,11 +7,7 @@ require_once __DIR__ . '/includes/functions.php';
 
 header('Content-Type: application/json');
 
-if (!isLoggedIn()) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit;
-}
+requireAuthApi();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

@@ -4,7 +4,7 @@
  */
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/functions.php';
-requireAuth();
+requireAdmin();
 
 $pageTitle = 'Audit Log';
 
@@ -33,6 +33,7 @@ include __DIR__ . '/includes/header.php';
             <option value="estimate" data-i18n="filter_estimates" <?= $filterType === 'estimate' ? 'selected' : '' ?>>Estimates</option>
             <option value="client" data-i18n="nav_clients" <?= $filterType === 'client' ? 'selected' : '' ?>>Clients</option>
             <option value="settings" data-i18n="filter_settings" <?= $filterType === 'settings' ? 'selected' : '' ?>>Settings</option>
+            <option value="estimator" data-i18n="nav_estimators" <?= $filterType === 'estimator' ? 'selected' : '' ?>>Estimators</option>
         </select>
     </form>
 </div>
@@ -105,6 +106,8 @@ include __DIR__ . '/includes/header.php';
                             $entityLink = 'estimate.php?id=' . $log['entity_id'];
                         } elseif ($log['entity_type'] === 'client') {
                             $entityLink = 'clients.php?id=' . $log['entity_id'] . '&action=view';
+                        } elseif ($log['entity_type'] === 'estimator') {
+                            $entityLink = 'estimators.php?id=' . $log['entity_id'];
                         }
                     }
                     ?>
@@ -117,6 +120,9 @@ include __DIR__ . '/includes/header.php';
                             <span class="badge <?= $log['user_role'] === 'admin' ? 'badge-primary' : 'badge-secondary' ?>">
                                 <?= ucfirst(e($log['user_role'])) ?>
                             </span>
+                            <?php if (!empty($log['user_name']) && $log['user_role'] !== 'admin'): ?>
+                                <span class="audit-user-name"><?= e($log['user_name']) ?></span>
+                            <?php endif; ?>
                         </td>
                         <td data-label="Action">
                             <span class="badge <?= $actionClass ?>"><?= ucfirst(e($log['action'])) ?></span>

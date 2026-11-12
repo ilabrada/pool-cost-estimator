@@ -29,15 +29,24 @@ $timeout = isset($_GET['timeout']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pin = $_POST['pin'] ?? '';
     $adminHash = getSetting('pin_hash', '');
-    $estimatorEnabled = getSetting('estimator_enabled', '0');
-    $estimatorHash = getSetting('estimator_pin_hash', '');
 
-    if ($adminHash && password_verify($pin, $adminHash)) {
-        login('admin');
+    $isAdminPin = $adminHash && password_verify($pin, $adminHash);
+
+    $estimator = null;
+    if (!$isAdminPin && $pin !== '') {
+        try {
+            $estimator = findEstimatorByPin($pin);
+        } catch (PDOException $e) {
+            $estimator = null; // estimators table missing until migrations are run
+        }
+    }
+
+    if ($isAdminPin) {
+        login('admin', null, 'Admin');
         header('Location: dashboard.php');
         exit;
-    } elseif ($estimatorEnabled === '1' && $estimatorHash && password_verify($pin, $estimatorHash)) {
-        login('estimator');
+    } elseif ($estimator) {
+        login('estimator', $estimator['id'], $estimator['name']);
         header('Location: dashboard.php');
         exit;
     } else {
