@@ -178,7 +178,7 @@ Go to your repository → **Settings → Secrets and variables → Actions** and
 | `PROD_DB_PORT` | Production DB port |
 | `HOSTINGER_DB_HOST` | Dev/QA DB host |
 | `HOSTINGER_DB_NAME` | Dev/QA DB name |
-| `HOSTINGER_DB_USERNAME` | Dev/QA DB user |
+| `HOSTINGER_DB_USER` | Dev/QA DB user |
 | `HOSTINGER_DB_PASS` | Dev/QA DB password |
 | `HOSTINGER_DB_PORT` | Dev/QA DB port |
 | `HOSTINGER_FTP_SERVER` | FTP host |
