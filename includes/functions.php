@@ -65,6 +65,22 @@ function getPrice(string $key): float {
     return $row ? (float)$row['unit_price'] : 0.0;
 }
 
+// ── Ownership ───────────────────────────────────────────────────────
+
+/**
+ * SQL fragment restricting rows to the current user's own records.
+ * Admin: no restriction. Estimator: only rows where estimator_id matches.
+ *
+ * @return array{0: string, 1: array} [" AND alias.estimator_id = ?", [id]] or ['', []]
+ */
+function ownerScope(string $alias): array {
+    $estimatorId = currentEstimatorId();
+    if ($estimatorId === null) {
+        return ['', []];
+    }
+    return [" AND {$alias}.estimator_id = ?", [$estimatorId]];
+}
+
 // ── Estimates ───────────────────────────────────────────────────────
 
 function generateEstimateNumber(): string {
@@ -79,8 +95,13 @@ function generateEstimateNumber(): string {
 
 function getEstimate(int $id): ?array {
     $db = getDB();
-    $stmt = $db->prepare('SELECT e.*, c.name as client_name, c.phone as client_phone, c.email as client_email, c.address as client_address FROM estimates e LEFT JOIN clients c ON e.client_id = c.id WHERE e.id = ?');
-    $stmt->execute([$id]);
+    [$scopeSql, $scopeParams] = ownerScope('e');
+    $stmt = $db->prepare("SELECT e.*, c.name as client_name, c.phone as client_phone, c.email as client_email, c.address as client_address, est.name as estimator_name
+                          FROM estimates e
+                          LEFT JOIN clients c ON e.client_id = c.id
+                          LEFT JOIN estimators est ON e.estimator_id = est.id
+                          WHERE e.id = ?$scopeSql");
+    $stmt->execute(array_merge([$id], $scopeParams));
     $estimate = $stmt->fetch();
     if ($estimate) {
         $estimate['items'] = getEstimateItems($id);
@@ -111,11 +132,17 @@ function getEstimates(string $search = '', string $status = '', int $limit = 50,
         $where[] = 'e.status = ?';
         $params[] = $status;
     }
+    $estimatorId = currentEstimatorId();
+    if ($estimatorId !== null) {
+        $where[] = 'e.estimator_id = ?';
+        $params[] = $estimatorId;
+    }
 
     $whereClause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
-    $sql = "SELECT e.*, c.name as client_name, c.phone as client_phone 
+    $sql = "SELECT e.*, c.name as client_name, c.phone as client_phone, est.name as estimator_name
             FROM estimates e 
             LEFT JOIN clients c ON e.client_id = c.id 
+            LEFT JOIN estimators est ON e.estimator_id = est.id
             $whereClause 
             ORDER BY e.created_at DESC 
             LIMIT $limit OFFSET $offset";
@@ -137,6 +164,11 @@ function countEstimates(string $search = '', string $status = ''): int {
     if ($status) {
         $where[] = 'e.status = ?';
         $params[] = $status;
+    }
+    $estimatorId = currentEstimatorId();
+    if ($estimatorId !== null) {
+        $where[] = 'e.estimator_id = ?';
+        $params[] = $estimatorId;
     }
     $whereClause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
     $sql = "SELECT COUNT(*) as cnt FROM estimates e LEFT JOIN clients c ON e.client_id = c.id $whereClause";
@@ -171,19 +203,31 @@ function saveEstimate(array $data, array $items): int {
         ];
 
         if ($isNew) {
-            $cols = implode(', ', array_map(fn($f) => "`$f`", $fields));
-            $placeholders = implode(', ', array_fill(0, count($fields), '?'));
+            // Owner: keep an explicit owner (e.g. duplicating), otherwise the current user.
+            // Estimators can only ever create records they own.
+            $owner = currentEstimatorId();
+            if ($owner === null && array_key_exists('estimator_id', $data)) {
+                $owner = $data['estimator_id'] !== null ? (int)$data['estimator_id'] : null;
+            }
+            $insertFields = array_merge($fields, ['estimator_id']);
+            $cols = implode(', ', array_map(fn($f) => "`$f`", $insertFields));
+            $placeholders = implode(', ', array_fill(0, count($insertFields), '?'));
             $stmt = $db->prepare("INSERT INTO estimates ($cols) VALUES ($placeholders)");
             $values = array_map(fn($f) => $data[$f] ?? null, $fields);
+            $values[] = $owner;
             $stmt->execute($values);
             $estimateId = (int)$db->lastInsertId();
         } else {
             $estimateId = (int)$data['id'];
+            [$scopeSql, $scopeParams] = ownerScope('estimates');
             $sets = implode(', ', array_map(fn($f) => "`$f` = ?", $fields));
-            $stmt = $db->prepare("UPDATE estimates SET $sets, updated_at = NOW() WHERE id = ?");
+            $stmt = $db->prepare("UPDATE estimates SET $sets, updated_at = NOW() WHERE id = ?$scopeSql");
             $values = array_map(fn($f) => $data[$f] ?? null, $fields);
             $values[] = $estimateId;
-            $stmt->execute($values);
+            $stmt->execute(array_merge($values, $scopeParams));
+            if ($stmt->rowCount() === 0 && !getEstimate($estimateId)) {
+                throw new RuntimeException('Estimate not found.');
+            }
 
             // Delete old items
             $db->prepare('DELETE FROM estimate_items WHERE estimate_id = ?')->execute([$estimateId]);
@@ -225,8 +269,11 @@ function saveEstimate(array $data, array $items): int {
 
 function deleteEstimate(int $id): bool {
     $db = getDB();
-    // Capture info before deletion for audit
+    // Capture info before deletion for audit; also enforces ownership
     $estimate = getEstimate($id);
+    if (!$estimate) {
+        return false;
+    }
     $stmt = $db->prepare('DELETE FROM estimates WHERE id = ?');
     $result = $stmt->execute([$id]);
     if ($result && $estimate) {
@@ -270,32 +317,39 @@ function duplicateEstimate(int $id): ?int {
 
 function getClient(int $id): ?array {
     $db = getDB();
-    $stmt = $db->prepare('SELECT * FROM clients WHERE id = ?');
-    $stmt->execute([$id]);
+    [$scopeSql, $scopeParams] = ownerScope('c');
+    $stmt = $db->prepare("SELECT c.*, est.name as estimator_name FROM clients c LEFT JOIN estimators est ON c.estimator_id = est.id WHERE c.id = ?$scopeSql");
+    $stmt->execute(array_merge([$id], $scopeParams));
     return $stmt->fetch() ?: null;
+}
+
+/**
+ * @return array{0: string, 1: array} WHERE clause (search + ownership) and params for clients alias "c"
+ */
+function clientsWhere(string $search): array {
+    [$scopeSql, $params] = ownerScope('c');
+    $where = 'WHERE 1=1' . $scopeSql;
+    if ($search) {
+        $where .= ' AND (c.name LIKE ? OR c.phone LIKE ? OR c.email LIKE ?)';
+        $s = '%' . $search . '%';
+        array_push($params, $s, $s, $s);
+    }
+    return [$where, $params];
 }
 
 function getClients(string $search = '', int $limit = 50, int $offset = 0): array {
     $db = getDB();
-    if ($search) {
-        $stmt = $db->prepare("SELECT * FROM clients WHERE name LIKE ? OR phone LIKE ? OR email LIKE ? ORDER BY name LIMIT $limit OFFSET $offset");
-        $s = '%' . $search . '%';
-        $stmt->execute([$s, $s, $s]);
-    } else {
-        $stmt = $db->query("SELECT * FROM clients ORDER BY name LIMIT $limit OFFSET $offset");
-    }
+    [$where, $params] = clientsWhere($search);
+    $stmt = $db->prepare("SELECT c.*, est.name as estimator_name FROM clients c LEFT JOIN estimators est ON c.estimator_id = est.id $where ORDER BY c.name LIMIT $limit OFFSET $offset");
+    $stmt->execute($params);
     return $stmt->fetchAll();
 }
 
 function countClients(string $search = ''): int {
     $db = getDB();
-    if ($search) {
-        $stmt = $db->prepare('SELECT COUNT(*) as cnt FROM clients WHERE name LIKE ? OR phone LIKE ? OR email LIKE ?');
-        $s = '%' . $search . '%';
-        $stmt->execute([$s, $s, $s]);
-    } else {
-        $stmt = $db->query('SELECT COUNT(*) as cnt FROM clients');
-    }
+    [$where, $params] = clientsWhere($search);
+    $stmt = $db->prepare("SELECT COUNT(*) as cnt FROM clients c $where");
+    $stmt->execute($params);
     return (int)$stmt->fetch()['cnt'];
 }
 
@@ -304,10 +358,13 @@ function saveClient(array $data): int {
     $fields = ['name', 'phone', 'email', 'address', 'notes', 'tier'];
 
     if (empty($data['id'])) {
-        $cols = implode(', ', array_map(fn($f) => "`$f`", $fields));
-        $placeholders = implode(', ', array_fill(0, count($fields), '?'));
+        $insertFields = array_merge($fields, ['estimator_id']);
+        $cols = implode(', ', array_map(fn($f) => "`$f`", $insertFields));
+        $placeholders = implode(', ', array_fill(0, count($insertFields), '?'));
         $stmt = $db->prepare("INSERT INTO clients ($cols) VALUES ($placeholders)");
-        $stmt->execute(array_map(fn($f) => $data[$f] ?? null, $fields));
+        $values = array_map(fn($f) => $data[$f] ?? null, $fields);
+        $values[] = currentEstimatorId();
+        $stmt->execute($values);
         $clientId = (int)$db->lastInsertId();
         logAudit('client', $clientId, 'create', [
             'name' => $data['name'] ?? null,
@@ -316,6 +373,9 @@ function saveClient(array $data): int {
         ]);
         return $clientId;
     } else {
+        if (!getClient((int)$data['id'])) {
+            throw new RuntimeException('Client not found.');
+        }
         $sets = implode(', ', array_map(fn($f) => "`$f` = ?", $fields));
         $stmt = $db->prepare("UPDATE clients SET $sets WHERE id = ?");
         $values = array_map(fn($f) => $data[$f] ?? null, $fields);
@@ -332,7 +392,10 @@ function saveClient(array $data): int {
 
 function deleteClient(int $id): bool {
     $db = getDB();
-    $client = getClient($id);
+    $client = getClient($id); // enforces ownership
+    if (!$client) {
+        return false;
+    }
     $stmt = $db->prepare('DELETE FROM clients WHERE id = ?');
     $result = $stmt->execute([$id]);
     if ($result && $client) {
@@ -494,12 +557,13 @@ function logAudit(string $entityType, ?int $entityId, string $action, array $ext
     try {
         $db = getDB();
         $userRole = $_SESSION['user_role'] ?? 'unknown';
+        $userName = $_SESSION['user_name'] ?? null;
         $ip = getClientIP();
         $userAgent = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255);
         $details = !empty($extra) ? json_encode($extra, JSON_UNESCAPED_UNICODE) : null;
 
-        $stmt = $db->prepare('INSERT INTO audit_log (entity_type, entity_id, action, user_role, ip_address, user_agent, details) VALUES (?, ?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$entityType, $entityId, $action, $userRole, $ip, $userAgent, $details]);
+        $stmt = $db->prepare('INSERT INTO audit_log (entity_type, entity_id, action, user_role, user_name, ip_address, user_agent, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        $stmt->execute([$entityType, $entityId, $action, $userRole, $userName, $ip, $userAgent, $details]);
     } catch (Exception $e) {
         // Silently fail — audit should never break the app
         error_log('Audit log error: ' . $e->getMessage());
@@ -539,14 +603,141 @@ function countAuditLogs(string $entityType = ''): int {
 
 function getDashboardStats(): array {
     $db = getDB();
+    $estimatorId = currentEstimatorId();
+    $scope = $estimatorId === null ? '' : ' AND estimator_id = ?';
+    $params = $estimatorId === null ? [] : [$estimatorId];
+    $q = function (string $sql) use ($db, $scope, $params) {
+        $stmt = $db->prepare($sql . $scope);
+        $stmt->execute($params);
+        return $stmt->fetchColumn();
+    };
     return [
-        'total_estimates' => (int)$db->query("SELECT COUNT(*) FROM estimates")->fetchColumn(),
-        'draft_estimates' => (int)$db->query("SELECT COUNT(*) FROM estimates WHERE status='draft'")->fetchColumn(),
-        'approved_estimates' => (int)$db->query("SELECT COUNT(*) FROM estimates WHERE status='approved'")->fetchColumn(),
-        'total_clients' => (int)$db->query("SELECT COUNT(*) FROM clients")->fetchColumn(),
-        'total_value' => (float)$db->query("SELECT COALESCE(SUM(total),0) FROM estimates WHERE status='approved'")->fetchColumn(),
-        'month_estimates' => (int)$db->query("SELECT COUNT(*) FROM estimates WHERE MONTH(created_at) = MONTH(NOW()) AND YEAR(created_at) = YEAR(NOW())")->fetchColumn(),
+        'total_estimates' => (int)$q("SELECT COUNT(*) FROM estimates WHERE 1=1"),
+        'draft_estimates' => (int)$q("SELECT COUNT(*) FROM estimates WHERE status='draft'"),
+        'approved_estimates' => (int)$q("SELECT COUNT(*) FROM estimates WHERE status='approved'"),
+        'total_clients' => (int)$q("SELECT COUNT(*) FROM clients WHERE 1=1"),
+        'total_value' => (float)$q("SELECT COALESCE(SUM(total),0) FROM estimates WHERE status='approved'"),
+        'month_estimates' => (int)$q("SELECT COUNT(*) FROM estimates WHERE MONTH(created_at) = MONTH(NOW()) AND YEAR(created_at) = YEAR(NOW())"),
     ];
+}
+
+// ── Estimators (admin-managed users) ────────────────────────────────
+
+function getEstimators(bool $activeOnly = false): array {
+    $db = getDB();
+    $where = $activeOnly ? 'WHERE e.active = 1' : '';
+    $sql = "SELECT e.id, e.name, e.active, e.created_at, e.updated_at,
+                   (SELECT COUNT(*) FROM clients c WHERE c.estimator_id = e.id) AS client_count,
+                   (SELECT COUNT(*) FROM estimates x WHERE x.estimator_id = e.id) AS estimate_count
+            FROM estimators e $where
+            ORDER BY e.active DESC, e.name";
+    return $db->query($sql)->fetchAll();
+}
+
+function getEstimatorById(int $id): ?array {
+    $stmt = getDB()->prepare('SELECT id, name, active, created_at, updated_at FROM estimators WHERE id = ?');
+    $stmt->execute([$id]);
+    return $stmt->fetch() ?: null;
+}
+
+/**
+ * Login is PIN-only, so a PIN must identify exactly one user.
+ * Checks the admin PIN and every estimator PIN (active or not).
+ */
+function isPinInUse(string $pin, ?int $excludeEstimatorId = null, bool $checkAdmin = true): bool {
+    if ($checkAdmin) {
+        $adminHash = getSetting('pin_hash', '');
+        if ($adminHash && password_verify($pin, $adminHash)) {
+            return true;
+        }
+    }
+    $rows = getDB()->query('SELECT id, pin_hash FROM estimators')->fetchAll();
+    foreach ($rows as $row) {
+        if ($excludeEstimatorId !== null && (int)$row['id'] === $excludeEstimatorId) {
+            continue;
+        }
+        if (password_verify($pin, $row['pin_hash'])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Find the active estimator whose PIN matches, for login.
+ */
+function findEstimatorByPin(string $pin): ?array {
+    $rows = getDB()->query('SELECT id, name, pin_hash FROM estimators WHERE active = 1')->fetchAll();
+    foreach ($rows as $row) {
+        if (password_verify($pin, $row['pin_hash'])) {
+            return ['id' => (int)$row['id'], 'name' => $row['name']];
+        }
+    }
+    return null;
+}
+
+/**
+ * Create or update an estimator. $data: id?, name, pin? (plain, already validated), active?
+ */
+function saveEstimator(array $data): int {
+    $db = getDB();
+    $name = trim($data['name'] ?? '');
+    $pin = $data['pin'] ?? '';
+
+    if (empty($data['id'])) {
+        $stmt = $db->prepare('INSERT INTO estimators (name, pin_hash, active) VALUES (?, ?, 1)');
+        $stmt->execute([$name, password_hash($pin, PASSWORD_DEFAULT)]);
+        $id = (int)$db->lastInsertId();
+        logAudit('estimator', $id, 'create', ['name' => $name]);
+        return $id;
+    }
+
+    $id = (int)$data['id'];
+    $before = getEstimatorById($id);
+    $active = !empty($data['active']) ? 1 : 0;
+    if ($pin !== '') {
+        $stmt = $db->prepare('UPDATE estimators SET name = ?, active = ?, pin_hash = ? WHERE id = ?');
+        $stmt->execute([$name, $active, password_hash($pin, PASSWORD_DEFAULT), $id]);
+    } else {
+        $stmt = $db->prepare('UPDATE estimators SET name = ?, active = ? WHERE id = ?');
+        $stmt->execute([$name, $active, $id]);
+    }
+
+    $action = 'update';
+    if ($before && (int)$before['active'] === 1 && $active === 0) {
+        $action = 'deactivate';
+    } elseif ($before && (int)$before['active'] === 0 && $active === 1) {
+        $action = 'activate';
+    }
+    logAudit('estimator', $id, $action, [
+        'name' => $name,
+        'pin_changed' => $pin !== '',
+    ]);
+    return $id;
+}
+
+/**
+ * Move all clients and estimates owned by one estimator to another owner.
+ * $toId = null assigns them to the admin.
+ *
+ * @return array{clients: int, estimates: int}
+ */
+function reassignEstimatorRecords(int $fromId, ?int $toId): array {
+    $db = getDB();
+    $db->beginTransaction();
+    try {
+        $c = $db->prepare('UPDATE clients SET estimator_id = ? WHERE estimator_id = ?');
+        $c->execute([$toId, $fromId]);
+        $e = $db->prepare('UPDATE estimates SET estimator_id = ? WHERE estimator_id = ?');
+        $e->execute([$toId, $fromId]);
+        $db->commit();
+    } catch (Exception $ex) {
+        $db->rollBack();
+        throw $ex;
+    }
+    $result = ['clients' => $c->rowCount(), 'estimates' => $e->rowCount()];
+    logAudit('estimator', $fromId, 'reassign', array_merge($result, ['to_estimator_id' => $toId]));
+    return $result;
 }
 
 // ── Pool Calculations ───────────────────────────────────────────────

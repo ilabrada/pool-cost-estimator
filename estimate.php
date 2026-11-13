@@ -84,11 +84,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'status'            => $_POST['status'] ?? 'draft',
     ];
 
-    // If existing estimate, keep the estimate_number
+    // If existing estimate, keep the estimate_number (getEstimate enforces ownership)
     if ($data['id'] > 0) {
         $existing = getEstimate($data['id']);
+        if (!$existing) {
+            header('Location: dashboard.php?msg=not_found');
+            exit;
+        }
         $data['estimate_number'] = $existing['estimate_number'];
         $data['valid_until'] = $existing['valid_until'];
+    }
+
+    // Selected client must be visible to the current user
+    if (!empty($data['client_id']) && !getClient($data['client_id'])) {
+        $data['client_id'] = null;
     }
 
     // Save new client if provided

@@ -43,6 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'tier'    => in_array($_POST['tier'] ?? '', ['priority', 'standard']) ? $_POST['tier'] : 'priority',
     ];
 
+    // Editing requires the client to be visible to the current user
+    if ($clientData['id'] > 0 && !getClient($clientData['id'])) {
+        header('Location: clients.php?msg=not_found');
+        exit;
+    }
+
     if (empty($clientData['name'])) {
         $error = 'Client name is required.';
     } else {
@@ -133,7 +139,11 @@ include __DIR__ . '/includes/header.php';
                 <a href="clients.php?id=<?= $c['id'] ?>&action=view" class="client-card">
                     <div class="client-avatar"><?= strtoupper(mb_substr($c['name'], 0, 1)) ?></div>
                     <div class="client-info">
-                        <div class="client-name"><?= e($c['name']) ?></div>
+                        <div class="client-name"><?= e($c['name']) ?>
+                            <?php if (isAdmin()): ?>
+                                <span class="owner-badge"><span class="material-icons-round">badge</span><?= $c['estimator_name'] ? e($c['estimator_name']) : '<span data-i18n="owner_admin">Admin</span>' ?></span>
+                            <?php endif; ?>
+                        </div>
                         <div class="client-detail">
                             <?php if ($c['phone']): ?>
                                 <span><span class="material-icons-round">phone</span> <?= e($c['phone']) ?></span>
@@ -207,6 +217,12 @@ include __DIR__ . '/includes/header.php';
                     <span class="detail-label" data-i18n="label_created">Created</span>
                     <span class="detail-value"><?= formatDate($client['created_at']) ?></span>
                 </div>
+                <?php if (isAdmin()): ?>
+                <div class="detail-item">
+                    <span class="detail-label" data-i18n="label_owner">Owner</span>
+                    <span class="detail-value"><?= $client['estimator_name'] ? e($client['estimator_name']) : '<span data-i18n="owner_admin">Admin</span>' ?></span>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

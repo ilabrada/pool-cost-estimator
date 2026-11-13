@@ -5,7 +5,8 @@
  * DELETE THIS FILE after installation for security!
  */
 require_once __DIR__ . '/includes/config.php';
-require_once __DIR__ . '/includes/functions.php'; 
+require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/migrations.php';
 
 $step = $_GET['step'] ?? '1';
 $error = '';
@@ -40,41 +41,11 @@ if ($step === '2') {
             [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
         );
 
-        // 1. Apply base schema (CREATE TABLE IF NOT EXISTS — always safe)
-        $pdo->exec(file_get_contents(__DIR__ . '/sql/schema.sql'));
-        // schema.sql sets AUTOCOMMIT=0; restore it so migration tracking INSERTs are committed
-        $pdo->exec('SET autocommit = 1');
-
-        // 2. Run any pending migrations from sql/migrations/*.sql
-        $migrationDir = __DIR__ . '/sql/migrations';
-        $migrationFiles = glob($migrationDir . '/*.sql');
-        sort($migrationFiles);
-
-        foreach ($migrationFiles as $file) {
-            $name = basename($file);
-            $already = $pdo->prepare('SELECT id FROM migrations WHERE migration = ?');
-            $already->execute([$name]);
-
-            if ($already->fetch()) {
-                $migrationResults[] = ['name' => $name, 'status' => 'skipped'];
-                continue;
-            }
-
-            try {
-                $pdo->exec(file_get_contents($file));
-                $pdo->prepare('INSERT INTO migrations (migration) VALUES (?)')->execute([$name]);
-                $migrationResults[] = ['name' => $name, 'status' => 'applied'];
-            } catch (PDOException $me) {
-                // Column already exists = harmless; anything else is a real error
-                if (strpos($me->getMessage(), 'Duplicate column') !== false ||
-                    strpos($me->getMessage(), 'already exists') !== false) {
-                    $pdo->prepare('INSERT IGNORE INTO migrations (migration) VALUES (?)')->execute([$name]);
-                    $migrationResults[] = ['name' => $name, 'status' => 'skipped'];
-                } else {
-                    $migrationResults[] = ['name' => $name, 'status' => 'error', 'msg' => $me->getMessage()];
-                    $error = 'Migration failed: ' . htmlspecialchars($me->getMessage());
-                }
-            }
+        // Base schema + pending migrations (shared with migrate.php and the deploy pipeline)
+        $run = runMigrations($pdo);
+        $migrationResults = $run['results'];
+        if ($run['error']) {
+            $error = $run['error'];
         }
 
         if (!$error) {

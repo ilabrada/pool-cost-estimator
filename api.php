@@ -7,11 +7,7 @@ require_once __DIR__ . '/includes/functions.php';
 
 header('Content-Type: application/json');
 
-if (!isLoggedIn()) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
-    exit;
-}
+requireAuthApi();
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
@@ -62,7 +58,7 @@ switch ($action) {
                 ? (float)getSetting('standard_tier_discount', '0')
                 : 0.0;
             $client['pricing_factor'] = round(1.0 - ($discountPct / 100.0), 6);
-            unset($client['tier']); // keep tier off the wire
+            unset($client['tier'], $client['estimator_id'], $client['estimator_name']); // keep internal fields off the wire
         }
         echo json_encode($client ?: ['error' => 'Not found']);
         break;

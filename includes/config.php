@@ -31,6 +31,11 @@ define('SESSION_LIFETIME', 86400);      // 24 hours in seconds
 // ── Security ────────────────────────────────────────────────────────
 define('CSRF_TOKEN_NAME', 'csrf_token');
 
+// Secret the deploy pipeline uses to run migrate.php after each deploy.
+// Replaced from the MIGRATE_TOKEN GitHub secret; while it is still a
+// placeholder, token access to migrate.php is disabled.
+defined('MIGRATE_TOKEN') || define('MIGRATE_TOKEN', '{{MIGRATE_TOKEN}}');
+
 // ── Timezone ────────────────────────────────────────────────────────
 date_default_timezone_set('America/New_York'); // Change to your timezone
 

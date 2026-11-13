@@ -4,9 +4,40 @@
  *
  * Applies any pending SQL migration scripts to an already-configured database.
  * Does NOT prompt for or modify business information or the admin PIN.
- * Requires an authenticated admin session.
+ *
+ * Two ways in:
+ *  - Web UI: requires an authenticated admin session (+ CSRF).
+ *  - Deploy pipeline: POST token=<MIGRATE_TOKEN> returns JSON, HTTP 500 on failure.
  */
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/migrations.php';
+
+// ── Deploy pipeline (token) ─────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token'])) {
+    header('Content-Type: application/json');
+    if (!isValidMigrateToken((string)$_POST['token'])) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Invalid or unconfigured migrate token.']);
+        exit;
+    }
+    try {
+        $run = runMigrations();
+    } catch (PDOException $e) {
+        $run = ['results' => [], 'applied' => 0, 'error' => 'Database error: ' . $e->getMessage()];
+    }
+    if ($run['error']) {
+        http_response_code(500);
+    }
+    echo json_encode([
+        'success' => $run['error'] === '',
+        'applied' => $run['applied'],
+        'error'   => $run['error'],
+        'results' => $run['results'],
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
+
+// ── Web UI (admin) ──────────────────────────────────────────────────
 requireAdmin();
 require_once __DIR__ . '/includes/functions.php';
 
@@ -16,6 +47,7 @@ $migrationResults = [];
 $error   = '';
 $success = '';
 $ran     = false;
+$pending = getPendingMigrations();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_migrations'])) {
     $csrf = $_POST[CSRF_TOKEN_NAME] ?? '';
@@ -23,57 +55,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_migrations'])) {
         $error = 'Invalid security token. Please refresh the page and try again.';
     } else {
         try {
-            $pdo = getDB();
-
-            // 1. Apply base schema (CREATE TABLE IF NOT EXISTS — always safe)
-            $pdo->exec(file_get_contents(__DIR__ . '/sql/schema.sql'));
-            // schema.sql sets AUTOCOMMIT=0; restore it so migration tracking INSERTs are committed
-            $pdo->exec('SET autocommit = 1');
-
-            // 2. Run any pending migrations from sql/migrations/*.sql
-            $migrationDir   = __DIR__ . '/sql/migrations';
-            $migrationFiles = glob($migrationDir . '/*.sql');
-            sort($migrationFiles);
-
-            foreach ($migrationFiles as $file) {
-                $name    = basename($file);
-                $already = $pdo->prepare('SELECT id FROM migrations WHERE migration = ?');
-                $already->execute([$name]);
-
-                if ($already->fetch()) {
-                    $migrationResults[] = ['name' => $name, 'status' => 'skipped'];
-                    continue;
-                }
-
-                try {
-                    $pdo->exec(file_get_contents($file));
-                    $pdo->prepare('INSERT INTO migrations (migration) VALUES (?)')->execute([$name]);
-                    $migrationResults[] = ['name' => $name, 'status' => 'applied'];
-                } catch (PDOException $me) {
-                    // Duplicate column / object already exists = harmless; record it as skipped
-                    if (strpos($me->getMessage(), 'Duplicate column') !== false ||
-                        strpos($me->getMessage(), 'already exists') !== false) {
-                        $pdo->prepare('INSERT IGNORE INTO migrations (migration) VALUES (?)')->execute([$name]);
-                        $migrationResults[] = ['name' => $name, 'status' => 'skipped'];
-                    } else {
-                        $migrationResults[] = ['name' => $name, 'status' => 'error', 'msg' => $me->getMessage()];
-                        $error = 'Migration failed: ' . htmlspecialchars($me->getMessage());
-                        break;
-                    }
-                }
-            }
-
-            if (!$error) {
-                $applied = count(array_filter($migrationResults, fn($r) => $r['status'] === 'applied'));
-                $success = $applied > 0
-                    ? "Migrations complete. {$applied} new migration(s) applied."
+            $run = runMigrations();
+            $migrationResults = $run['results'];
+            if ($run['error']) {
+                $error = $run['error'];
+            } else {
+                $success = $run['applied'] > 0
+                    ? "Migrations complete. {$run['applied']} new migration(s) applied."
                     : 'All migrations were already up to date. Nothing to apply.';
             }
         } catch (PDOException $e) {
-            $error = 'Database error: ' . htmlspecialchars($e->getMessage());
+            $error = 'Database error: ' . $e->getMessage();
         }
 
         $ran = true;
+        $pending = getPendingMigrations();
     }
 }
 
@@ -91,6 +87,17 @@ require_once __DIR__ . '/includes/header.php';
     <div class="card-body">
 
         <p>This tool applies any pending database migration scripts. It will <strong>never</strong> modify your business information or admin PIN.</p>
+
+        <?php if (!$ran): ?>
+            <?php if ($pending): ?>
+                <div class="alert alert-warning">
+                    The database needs updating before the app can be used.
+                    Pending: <code><?= htmlspecialchars(implode(', ', $pending)) ?></code>
+                </div>
+            <?php else: ?>
+                <p style="color:#198754">&#10003; The database is up to date.</p>
+            <?php endif; ?>
+        <?php endif; ?>
 
         <?php if ($error): ?>
             <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>

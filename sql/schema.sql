@@ -30,6 +30,18 @@ CREATE TABLE IF NOT EXISTS `pricing` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
+-- Estimators (users created by the admin)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `estimators` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(100) NOT NULL,
+    `pin_hash` VARCHAR(255) NOT NULL,
+    `active` TINYINT(1) NOT NULL DEFAULT 1,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 -- Clients
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `clients` (
@@ -40,8 +52,11 @@ CREATE TABLE IF NOT EXISTS `clients` (
     `address` TEXT DEFAULT NULL,
     `notes` TEXT DEFAULT NULL,
     `tier` ENUM('priority','standard') NOT NULL DEFAULT 'priority',
+    `estimator_id` INT DEFAULT NULL COMMENT 'Owner estimator; NULL = admin',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_client_estimator` (`estimator_id`),
+    CONSTRAINT `fk_clients_estimator` FOREIGN KEY (`estimator_id`) REFERENCES `estimators`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -51,6 +66,7 @@ CREATE TABLE IF NOT EXISTS `estimates` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `estimate_number` VARCHAR(20) NOT NULL UNIQUE,
     `client_id` INT DEFAULT NULL,
+    `estimator_id` INT DEFAULT NULL COMMENT 'Owner estimator; NULL = admin',
 
     -- Pool Dimensions
     `pool_length` DECIMAL(8,2) DEFAULT 0.00,
@@ -103,7 +119,9 @@ CREATE TABLE IF NOT EXISTS `estimates` (
     FOREIGN KEY (`client_id`) REFERENCES `clients`(`id`) ON DELETE SET NULL,
     INDEX `idx_status` (`status`),
     INDEX `idx_client` (`client_id`),
-    INDEX `idx_created` (`created_at`)
+    INDEX `idx_created` (`created_at`),
+    INDEX `idx_estimate_estimator` (`estimator_id`),
+    CONSTRAINT `fk_estimates_estimator` FOREIGN KEY (`estimator_id`) REFERENCES `estimators`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -142,6 +160,7 @@ CREATE TABLE IF NOT EXISTS `audit_log` (
     `entity_id` INT DEFAULT NULL COMMENT 'ID of the affected record',
     `action` VARCHAR(30) NOT NULL COMMENT 'create, update, delete, duplicate',
     `user_role` VARCHAR(20) NOT NULL COMMENT 'admin or estimator',
+    `user_name` VARCHAR(100) DEFAULT NULL,
     `ip_address` VARCHAR(45) DEFAULT NULL,
     `user_agent` VARCHAR(255) DEFAULT NULL,
     `details` TEXT DEFAULT NULL COMMENT 'JSON with extra context',
