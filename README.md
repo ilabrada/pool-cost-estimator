@@ -184,6 +184,7 @@ Go to your repository → **Settings → Secrets and variables → Actions** and
 | `HOSTINGER_FTP_SERVER` | FTP host |
 | `HOSTINGER_FTP_USERNAME` | FTP username |
 | `HOSTINGER_FTP_PASSWORD` | FTP password |
+| `MIGRATE_TOKEN` | Long random secret used to run `migrate.php` after each deploy (generate with `openssl rand -hex 32`) |
 
 ---
 
@@ -291,7 +292,17 @@ Access the log from the **Audit Log** link in the sidebar. Filter by entity type
 
 After the initial installation, apply new SQL migration scripts without re-entering business information or your admin PIN.
 
-### Using the Web UI (recommended)
+### Automatically on deploy
+
+Both deploy workflows end with a **Run database migrations** step. Once the FTP upload finishes, it POSTs the `MIGRATE_TOKEN` secret to `migrate.php`, which applies any pending migrations and returns JSON. The deploy run fails (shows red in GitHub Actions) if the secret is missing, the token is rejected, or a migration errors. Check the step's output for the failing file.
+
+The token is inserted into `includes/config.php` at deploy time, like the DB credentials. While it is still the `{{MIGRATE_TOKEN}}` placeholder, token access to `migrate.php` is disabled.
+
+### Safety net
+
+If the database is ever behind the code (for example, the migration step failed), the app does not return a 500. The admin is redirected to `migrate.php`, which lists the pending files. Estimators see an "app is being updated" page until the migrations are applied.
+
+### Using the Web UI
 
 1. Log in to the app as an admin.
 2. Navigate to `https://yourdomain.com/migrate.php`.
@@ -310,7 +321,7 @@ Any `.sql` file in `sql/migrations/` whose filename does **not** appear in the `
 
 1. Create a new file in `sql/migrations/` following the naming convention: `NNN_description.sql` (e.g. `003_add_promo_codes.sql`).
 2. Write idempotent SQL where possible (use `IF NOT EXISTS`, `IF EXISTS`, etc.).
-3. Deploy the file to the server and run `migrate.php`.
+3. Deploy. The workflow runs it automatically; to run it by hand, use `migrate.php`.
 
 ### What about `install.php`?
 

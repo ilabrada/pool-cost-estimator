@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/migrations.php';
 
 // Start secure session
 if (session_status() === PHP_SESSION_NONE) {
@@ -66,9 +67,44 @@ function isSessionUserActive(): bool {
 }
 
 /**
+ * Safety net: if the code was deployed but the database has not been migrated,
+ * send the admin to migrate.php and show everyone else a maintenance page,
+ * instead of failing with a 500 on queries against missing tables/columns.
+ */
+function enforceDatabaseUpToDate(bool $json = false): void {
+    if (basename($_SERVER['SCRIPT_NAME'] ?? '') === 'migrate.php' || !hasPendingMigrations()) {
+        return;
+    }
+    if ($json) {
+        http_response_code(503);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'The app is being updated. Please try again in a few minutes.']);
+        exit;
+    }
+    if (isAdmin()) {
+        header('Location: migrate.php');
+        exit;
+    }
+    http_response_code(503);
+    header('Retry-After: 300');
+    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
+       . '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+       . '<title>Updating</title><link rel="stylesheet" href="assets/css/style.css"></head>'
+       . '<body class="login-page"><div class="login-container"><div class="login-card">'
+       . '<div class="login-header"><span class="login-logo">🛠️</span><h1>Updating</h1>'
+       . '<p>The app is being updated. Please try again in a few minutes.</p></div>'
+       . '<a href="logout.php" class="btn btn-primary btn-block">OK</a>'
+       . '</div></div></body></html>';
+    exit;
+}
+
+/**
  * Auth check for JSON endpoints: responds 401 instead of redirecting.
  */
 function requireAuthApi(): void {
+    if (isLoggedIn()) {
+        enforceDatabaseUpToDate(true);
+    }
     if (!isSessionUserActive()) {
         if (isLoggedIn()) {
             logout();
@@ -86,6 +122,7 @@ function requireAuth(): void {
         header('Location: index.php');
         exit;
     }
+    enforceDatabaseUpToDate();
     if (!isSessionUserActive()) {
         logout();
         header('Location: index.php');
