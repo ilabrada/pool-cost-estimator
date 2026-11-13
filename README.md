@@ -8,7 +8,8 @@ A mobile-first web application for estimating swimming pool construction costs. 
 - **Client Management** — Save clients and associate estimates to them
 - **PDF/Print** — Generate professional PDF estimates or print directly
 - **Mobile Optimized** — Responsive design works great on tablets and phones (PWA-ready)
-- **PIN Authentication** — Simple single-user PIN access
+- **PIN Authentication** — Admin plus any number of estimator users, each with their own PIN
+- **Per-Estimator Data** — Estimators only see the clients and estimates they created; the admin sees everything and manages settings
 - **Configurable Pricing** — Customize all unit prices from Settings
 - **Real-time Calculations** — Costs update live as you fill in the form
 - **Estimate Management** — Create, edit, duplicate, delete, track status
@@ -29,8 +30,8 @@ A mobile-first web application for estimating swimming pool construction costs. 
 
 - PHP 8.3
 - MariaDB 11.8.x
-- Web server support for PHP (Herd Basic provides the local runtime)
-- Apache with mod_rewrite is standard on Hostinger
+- Apache with mod_rewrite (standard on Hostinger)
+- Docker (OrbStack or Docker Desktop) for local development
 
 ## Installation
 
@@ -45,7 +46,7 @@ In your hosting panel (e.g., Hostinger hPanel):
 
 **Do not edit `includes/config.php` directly.** It contains `{{TOKEN}}` placeholders that are replaced automatically by the CI/CD pipeline on deployment (see [CI/CD & Token Replacement](#cicd--token-replacement)).
 
-For local development, create `includes/config.local.php` instead — see [Local Development with Herd + MariaDB](#local-development-with-herd--mariadb) below.
+For local development, no config changes are needed — see [Local Development with Docker](#local-development-with-docker) below.
 
 For production credentials, store them as [GitHub Actions secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) — never commit them to the repository.
 
@@ -87,121 +88,54 @@ After setup, **delete `install.php`** from your server for security.
 
 Visit `https://yourdomain.com/` and enter your PIN.
 
-## Local Development with Homebrew PHP + MariaDB
+## Local Development with Docker
 
-This project is designed to match your hosting environment: **PHP 8.3** and **MariaDB 11.8.x**.
+Local development runs in Docker (OrbStack or Docker Desktop). Nothing else needs to be installed on your machine. The stack matches production: **PHP 8.3 + Apache** (with `mod_rewrite` and `.htaccess` enabled) and **MariaDB 11.8**.
 
-### 1. Install the local stack
+### 1. Start the stack
 
-Install the following on your Mac:
-
-1. **PHP 8.3**
-   - Install PHP with Homebrew:
-     ```bash
-     brew install php@8.3
-     ```
-   - Make sure the PHP binary resolves in your shell:
-     ```bash
-     php -v
-     ```
-   - If needed, add the Homebrew PHP bin directory to your PATH.
-
-2. **Homebrew MariaDB 11.8.x**
-   - Install MariaDB with Homebrew:
-     ```bash
-     brew install mariadb@11.8
-     brew services start mariadb@11.8
-     ```
-   - Start the MariaDB service locally
-
-Example commands:
+From the project root:
 
 ```bash
-php -v
-mariadb --version
+docker compose -f docker/compose.yaml up -d --build
 ```
 
-You should see:
-- PHP 8.3.x
-- MariaDB 11.8.x
+The first run builds the PHP image. Later runs start in a few seconds.
 
-### 2. Create the local database
+### 2. Run the installer
 
-Open the MariaDB shell:
-
-```bash
-mariadb
-```
-
-Create the database:
-
-```sql
-CREATE DATABASE pool_estimator CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-Create the app user and grant access. Use the same password you plan to put in `DB_PASS` in the local config file:
-
-```sql
-CREATE USER 'pool_estimator'@'localhost' IDENTIFIED BY 'your_local_password';
-GRANT ALL PRIVILEGES ON pool_estimator.* TO 'pool_estimator'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-> The password in `IDENTIFIED BY 'your_local_password'` must match the value used in `DB_PASS` in `includes/config.local.php`.
-
-### 3. Configure the local app connection
-
-`config.php` contains CI/CD token placeholders (`{{DB_HOST}}` etc.) and must not be edited. Instead, create `includes/config.local.php` with your local credentials — this file is gitignored and loaded automatically when present:
-
-```php
-<?php
-define('DB_HOST', '127.0.0.1');
-define('DB_PORT', '3306');
-define('DB_NAME', 'pool_estimator');
-define('DB_USER', 'pool_estimator');
-define('DB_PASS', 'your_local_password');
-```
-
-The password above must match the password used in the MariaDB `CREATE USER` statement exactly.
-
-The constants defined here take priority over the token placeholders in `config.php` via `defined() || define()` guards, so the `{{TOKEN}}` strings are never evaluated.
-
-### 4. Serve the app locally
-
-You do not need Herd or any special local server manager. Use the PHP built-in web server from your Homebrew PHP 8.3 install:
-
-```bash
-cd /path/to/pool-cost-estimator
-php -S localhost:8000
-```
-
-Then open the app in your browser:
-
-```text
-http://localhost:8000
-```
-
-If you prefer, you can also point any local web server at the project folder instead.
-
-### 5. Run the installer
-
-Visit the app URL and open:
-
-```text
-http://localhost:8000/install.php
-```
-
-Complete the 3-step setup wizard:
+Open http://localhost:8090. On a new database the app redirects to `install.php`. Complete the 3-step setup wizard:
 
 1. **Step 1** — tests the database connection
 2. **Step 2** — creates the tables and default data
-3. **Step 3** — sets the business name and access PIN
+3. **Step 3** — sets the business name and admin PIN
 
-### 6. Access the app
+### 3. Log in
 
-After installation, visit the project URL and log in with the PIN you set during setup.
+Visit http://localhost:8090 and log in with the PIN you set during setup.
 
-> No manual revert needed before deploying. `config.local.php` only exists on your machine; the CI/CD pipeline works directly from the token placeholders in `config.php`.
+### How it works
+
+- The project folder is live-mounted into the container, so code changes show up on refresh. No rebuild is needed.
+- Inside the container, `docker/config.local.php` is mounted as `includes/config.local.php`. It reads the database settings from `docker/compose.yaml`, so you don't need to create a config file.
+- MariaDB is reachable from your Mac on port **3307** (database `pool_estimator`, user `pool_estimator`, password `pool_dev_password`), for example from a database GUI.
+- Emailing estimates needs SMTP configured in **Settings → Email**. The container has no local `mail()` transport.
+- The database is stored in a Docker volume, so it survives restarts.
+- The `docker/` folder is blocked from web access by `docker/.htaccess`, so it is harmless if it gets deployed.
+
+### Common commands
+
+```bash
+docker compose -f docker/compose.yaml logs -f app      # Apache/PHP logs
+docker compose -f docker/compose.yaml down             # stop (data is kept)
+docker compose -f docker/compose.yaml down -v          # stop and wipe the database
+
+# SQL shell
+docker compose -f docker/compose.yaml exec db mariadb -upool_estimator -ppool_dev_password pool_estimator
+
+# Import a dump (then run Settings → Run Migrations)
+docker compose -f docker/compose.yaml exec -T db mariadb -upool_estimator -ppool_dev_password pool_estimator < dump.sql
+```
 
 ---
 
@@ -228,7 +162,7 @@ The deploy step replaces the `{{TOKEN}}` placeholders in `includes/config.php` w
 
 This means:
 - `config.php` in the repository always contains only placeholders — **never real credentials**
-- Local development uses `config.local.php` (gitignored) to supply the same constants before the placeholders are evaluated
+- Local development (Docker) mounts `docker/config.local.php` as `includes/config.local.php`, which supplies the same constants before the placeholders are evaluated
 - Production/QA environments receive a fully resolved `config.php` only during the deploy run
 
 ### Setting up GitHub Secrets
@@ -262,8 +196,9 @@ Go to your repository → **Settings → Secrets and variables → Actions** and
 ├── dashboard.php             # Main dashboard with estimates list
 ├── estimate.php              # Create/edit estimate form
 ├── clients.php               # Client management (list, add, edit, view)
-├── settings.php              # Business info, pricing, PIN change
-├── audit-log.php             # Audit log viewer (activity history)
+├── settings.php              # Business info, pricing, PIN change (admin only)
+├── estimators.php            # Manage estimator users (admin only)
+├── audit-log.php             # Audit log viewer (activity history, admin only)
 ├── print-estimate.php        # Print-friendly estimate / PDF download
 ├── api.php                   # AJAX API (client search, calculations)
 ├── logout.php                # Logout
@@ -271,7 +206,7 @@ Go to your repository → **Settings → Secrets and variables → Actions** and
 ├── .htaccess                 # Security & caching rules
 ├── includes/
 │   ├── config.php            # Config with CI/CD token placeholders (committed)
-│   ├── config.local.php      # Local credentials override — gitignored, never committed
+│   ├── config.local.php      # Local credentials override — gitignored (Docker mounts docker/config.local.php here)
 │   ├── db.php                # PDO database connection
 │   ├── functions.php         # All helper functions
 │   ├── auth.php              # Session authentication
@@ -280,8 +215,13 @@ Go to your repository → **Settings → Secrets and variables → Actions** and
 ├── assets/
 │   ├── css/style.css         # All styles (mobile-first responsive)
 │   └── js/app.js             # All JavaScript (calculations, UI)
+├── docker/                   # Local development stack (blocked from the web)
+│   ├── compose.yaml          # PHP 8.3 + Apache and MariaDB 11.8 services
+│   ├── Dockerfile            # PHP image with pdo_mysql and mod_rewrite
+│   └── config.local.php      # DB settings read from compose.yaml env vars
 └── sql/
-    └── schema.sql            # Database schema & default data
+    ├── schema.sql            # Database schema & default data
+    └── migrations/           # Incremental SQL migrations (applied by migrate.php)
 ```
 
 ## Usage
