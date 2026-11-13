@@ -49,6 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         login('estimator', $estimator['id'], $estimator['name']);
         header('Location: dashboard.php');
         exit;
+    } elseif (hasPendingMigrations()) {
+        // Estimator PINs can't be checked until the database is migrated
+        $error = 'The app is being updated. Please try again in a few minutes.';
     } else {
         $error = 'Invalid PIN. Please try again.';
     }

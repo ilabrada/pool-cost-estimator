@@ -15,6 +15,8 @@ services:
       DB_NAME: pool_estimator
       DB_USER: pool_estimator
       DB_PASS: pool_dev_password
+      # Lets you test the deploy pipeline's token call to migrate.php locally
+      MIGRATE_TOKEN: local-dev-migrate-token-0123456789abcdef
     volumes:
       # Live-mount the project so code edits show up without rebuilding
       - ..:/var/www/html

@@ -20,6 +20,7 @@ jobs:
           sed -i 's/{{DB_USER}}/${{ secrets.PROD_DB_USERNAME }}/g' includes/config.php
           sed -i 's/{{DB_PASS}}/${{ secrets.PROD_DB_PASS }}/g' includes/config.php
           sed -i 's/{{DB_PORT}}/${{ secrets.PROD_DB_PORT }}/g' includes/config.php
+          sed -i 's/{{MIGRATE_TOKEN}}/${{ secrets.MIGRATE_TOKEN }}/g' includes/config.php
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -29,3 +30,22 @@ jobs:
           password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
           server-dir: /
           protocol: ftps
+
+      # Apply pending database migrations right after the new code is live.
+      # Fails the deploy (red run) if the token is missing/wrong or a migration errors.
+      - name: Run database migrations
+        env:
+          MIGRATE_URL: https://astroestimations.com/migrate.php
+          MIGRATE_TOKEN: ${{ secrets.MIGRATE_TOKEN }}
+        run: |
+          if [ -z "$MIGRATE_TOKEN" ]; then
+            echo "::error::MIGRATE_TOKEN secret is not set — cannot run migrations"
+            exit 1
+          fi
+          status=$(curl -sS --retry 3 --retry-delay 5 -o response.json -w '%{http_code}' \
+            --data-urlencode "token=$MIGRATE_TOKEN" "$MIGRATE_URL")
+          cat response.json; echo
+          if [ "$status" != "200" ]; then
+            echo "::error::Migrations failed (HTTP $status)"
+            exit 1
+          fi
