@@ -595,7 +595,8 @@ Thank you,
         <div class="doc-totals-table">
             <div class="doc-totals-row">
                 <span>Subtotal</span>
-                <span><?= $currency . number_format((float)$estimate['subtotal'], 2) ?></span>
+                <?php // Client-facing subtotal: includes the estimator's commission, which is never itemized ?>
+                <span><?= $currency . number_format((float)$estimate['subtotal'] + (float)($estimate['commission_amount'] ?? 0), 2) ?></span>
             </div>
             <?php if ((float)$estimate['discount_amount'] > 0): ?>
                 <div class="doc-totals-row">

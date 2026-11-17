@@ -148,6 +148,13 @@ include __DIR__ . '/includes/header.php';
                         <div class="client-detail">
                             <span><span class="material-icons-round">people</span> <?= (int)$est['client_count'] ?> <span data-i18n="nav_clients">Clients</span></span>
                             <span><span class="material-icons-round">description</span> <?= (int)$est['estimate_count'] ?> <span data-i18n="filter_estimates">Estimates</span></span>
+                            <?php if ((float)$est['commission_approved'] > 0 || (float)$est['commission_open'] > 0): ?>
+                                <span title="Commission on approved estimates · on draft/sent estimates">
+                                    <span class="material-icons-round">payments</span>
+                                    <?= formatCurrency((float)$est['commission_approved']) ?> <span data-i18n="commission_approved">approved</span>
+                                    · <?= formatCurrency((float)$est['commission_open']) ?> <span data-i18n="commission_open">open</span>
+                                </span>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <span class="material-icons-round client-arrow">chevron_right</span>

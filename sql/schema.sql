@@ -102,6 +102,8 @@ CREATE TABLE IF NOT EXISTS `estimates` (
 
     -- Totals
     `subtotal` DECIMAL(12,2) DEFAULT 0.00,
+    `commission_percent` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Estimator commission %; internal only',
+    `commission_amount` DECIMAL(12,2) NOT NULL DEFAULT 0.00 COMMENT 'Included in the client-facing subtotal',
     `tax_rate` DECIMAL(5,2) DEFAULT 0.00,
     `tax_amount` DECIMAL(12,2) DEFAULT 0.00,
     `discount_percent` DECIMAL(5,2) DEFAULT 0.00,
@@ -188,7 +190,8 @@ INSERT IGNORE INTO `settings` (`setting_key`, `setting_value`) VALUES
 ('estimate_prefix', 'EST'),
 ('pin_hash', ''),
 ('installed', '0'),
-('standard_tier_discount', '10');
+('standard_tier_discount', '10'),
+('max_estimator_commission', '0');
 
 -- --------------------------------------------------------
 -- Default Pricing
