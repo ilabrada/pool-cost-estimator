@@ -621,13 +621,22 @@ function recalculate() {
         customTotal += total;
     });
 
-    const subtotal = result.subtotal + customTotal;
+    const subtotal = round2(result.subtotal + customTotal);
 
-    // Discount & Tax
+    // Estimator commission (internal): folded into the client-facing subtotal.
+    // Must stay in sync with computeEstimateTotals() in includes/functions.php.
+    const commissionInput = document.getElementById('commission-percent');
+    let commissionPercent = parseFloat(commissionInput?.value) || 0;
+    const maxCommission = parseFloat(commissionInput?.max);
+    if (!isNaN(maxCommission)) commissionPercent = Math.min(Math.max(commissionPercent, 0), maxCommission);
+    const commissionAmount = round2(subtotal * commissionPercent / 100);
+    const clientSubtotal = round2(subtotal + commissionAmount);
+
+    // Discount & Tax (applied to the client-facing subtotal)
     const discountPercent = parseFloat(document.getElementById('discount-percent')?.value) || 0;
     const taxRate = parseFloat(document.getElementById('tax-rate')?.value) || 0;
-    const discountAmount = round2(subtotal * discountPercent / 100);
-    const afterDiscount = subtotal - discountAmount;
+    const discountAmount = round2(clientSubtotal * discountPercent / 100);
+    const afterDiscount = clientSubtotal - discountAmount;
     const taxAmount = round2(afterDiscount * taxRate / 100);
     const total = round2(afterDiscount + taxAmount);
 
@@ -638,6 +647,7 @@ function recalculate() {
 
     // Update totals
     setText('summary-subtotal', currency + numberFormat(subtotal));
+    setText('summary-commission', '+' + currency + numberFormat(commissionAmount));
     setText('summary-discount', '-' + currency + numberFormat(discountAmount));
     setText('summary-tax', currency + numberFormat(taxAmount));
     setText('summary-total', currency + numberFormat(total));

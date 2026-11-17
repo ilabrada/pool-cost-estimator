@@ -197,7 +197,8 @@ function saveEstimate(array $data, array $items): int {
             'has_heating', 'heating_type', 'has_waterfall', 'has_water_feature',
             'has_auto_cover', 'has_pool_cleaner', 'has_deck', 'deck_material',
             'deck_area', 'has_fence', 'fence_type', 'fence_length',
-            'subtotal', 'tax_rate', 'tax_amount', 'discount_percent',
+            'subtotal', 'commission_percent', 'commission_amount',
+            'tax_rate', 'tax_amount', 'discount_percent',
             'discount_amount', 'total', 'notes', 'internal_notes',
             'status', 'valid_until'
         ];
@@ -257,6 +258,7 @@ function saveEstimate(array $data, array $items): int {
             'client_id' => $data['client_id'] ?? null,
             'total' => $data['total'] ?? $data['subtotal'] ?? null,
             'status' => $data['status'] ?? 'draft',
+            'commission_percent' => $data['commission_percent'] ?? 0,
             'line_items_count' => count($items),
         ]);
 
@@ -311,6 +313,32 @@ function duplicateEstimate(int $id): ?int {
         ]);
     }
     return $newId;
+}
+
+/**
+ * Estimate totals. The estimator's commission is added to the base subtotal to
+ * form the client-facing subtotal; discount and tax then apply to that amount.
+ * Must stay in sync with recalculate() in assets/js/app.js.
+ *
+ * @return array{commission_amount: float, client_subtotal: float, discount_amount: float, tax_amount: float, total: float}
+ */
+function computeEstimateTotals(float $subtotal, float $commissionPercent, float $discountPercent, float $taxRate): array {
+    $commission = round($subtotal * $commissionPercent / 100, 2);
+    $clientSubtotal = round($subtotal + $commission, 2);
+    $discount = round($clientSubtotal * $discountPercent / 100, 2);
+    $afterDiscount = $clientSubtotal - $discount;
+    $tax = round($afterDiscount * $taxRate / 100, 2);
+    return [
+        'commission_amount' => $commission,
+        'client_subtotal'   => $clientSubtotal,
+        'discount_amount'   => $discount,
+        'tax_amount'        => $tax,
+        'total'             => round($afterDiscount + $tax, 2),
+    ];
+}
+
+function maxEstimatorCommission(): float {
+    return max(0.0, min(100.0, (float)getSetting('max_estimator_commission', '0')));
 }
 
 // ── Clients ─────────────────────────────────────────────────────────
@@ -628,7 +656,9 @@ function getEstimators(bool $activeOnly = false): array {
     $where = $activeOnly ? 'WHERE e.active = 1' : '';
     $sql = "SELECT e.id, e.name, e.active, e.created_at, e.updated_at,
                    (SELECT COUNT(*) FROM clients c WHERE c.estimator_id = e.id) AS client_count,
-                   (SELECT COUNT(*) FROM estimates x WHERE x.estimator_id = e.id) AS estimate_count
+                   (SELECT COUNT(*) FROM estimates x WHERE x.estimator_id = e.id) AS estimate_count,
+                   (SELECT COALESCE(SUM(x.commission_amount), 0) FROM estimates x WHERE x.estimator_id = e.id AND x.status = 'approved') AS commission_approved,
+                   (SELECT COALESCE(SUM(x.commission_amount), 0) FROM estimates x WHERE x.estimator_id = e.id AND x.status IN ('draft', 'sent')) AS commission_open
             FROM estimators e $where
             ORDER BY e.active DESC, e.name";
     return $db->query($sql)->fetchAll();

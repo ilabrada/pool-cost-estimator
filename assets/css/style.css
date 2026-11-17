@@ -444,6 +444,14 @@ textarea { resize: vertical; min-height: 60px; }
 }
 .owner-badge .material-icons-round { font-size: 0.875rem; }
 
+.summary-commission { color: var(--text-secondary); }
+.commission-hint {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
 .audit-user-name {
     display: block;
     font-size: 0.8125rem;

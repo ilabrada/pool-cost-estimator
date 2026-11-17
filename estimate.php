@@ -95,6 +95,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data['valid_until'] = $existing['valid_until'];
     }
 
+    // Estimator commission (internal). Estimators set it, capped by the admin's maximum;
+    // the admin never sets one and editing keeps whatever the estimator chose.
+    if (isAdmin()) {
+        $data['commission_percent'] = $data['id'] > 0 ? (float)($existing['commission_percent'] ?? 0) : 0.0;
+    } else {
+        $data['commission_percent'] = max(0.0, min(maxEstimatorCommission(), (float)($_POST['commission_percent'] ?? 0)));
+    }
+
+    // Recompute money fields server-side so the stored totals always match the rule
+    $totals = computeEstimateTotals(
+        $data['subtotal'],
+        $data['commission_percent'],
+        $data['discount_percent'],
+        $data['tax_rate']
+    );
+    $data['commission_amount'] = $totals['commission_amount'];
+    $data['discount_amount']   = $totals['discount_amount'];
+    $data['tax_amount']        = $totals['tax_amount'];
+    $data['total']             = $totals['total'];
+
     // Selected client must be visible to the current user
     if (!empty($data['client_id']) && !getClient($data['client_id'])) {
         $data['client_id'] = null;
@@ -157,6 +177,11 @@ if ($clientIdForFactor > 0) {
         $pricingFactor = round(1.0 - ($discountPct / 100.0), 6);
     }
 }
+
+// Commission field: estimators only, and only when the admin allows a commission
+$maxCommission = maxEstimatorCommission();
+$commissionPercent = (float)($estimate['commission_percent'] ?? 0);
+$showCommissionInput = !isAdmin() && $maxCommission > 0;
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -563,6 +588,34 @@ include __DIR__ . '/includes/header.php';
                         <span data-i18n="label_subtotal">Subtotal</span>
                         <span id="summary-subtotal">$0.00</span>
                     </div>
+                    <?php if ($showCommissionInput): ?>
+                        <div class="summary-line summary-commission">
+                            <label class="summary-line-input">
+                                <span>
+                                    <span data-i18n="label_commission">Commission</span>
+                                    <small class="commission-hint" data-i18n="hint_commission_hidden">Not shown to client</small>
+                                </span>
+                                <div class="input-with-suffix">
+                                    <input type="number" name="commission_percent" id="commission-percent"
+                                           min="0" max="<?= e((string)$maxCommission) ?>" step="0.5"
+                                           value="<?= e((string)min($commissionPercent, $maxCommission)) ?>"
+                                           oninput="recalculate()" style="width: 60px;">
+                                    <span>%</span>
+                                </div>
+                            </label>
+                            <span id="summary-commission">+$0.00</span>
+                        </div>
+                    <?php elseif (isAdmin() && $commissionPercent > 0): ?>
+                        <!-- Admin view of an estimator's commission (read-only) -->
+                        <input type="hidden" id="commission-percent" value="<?= e((string)$commissionPercent) ?>">
+                        <div class="summary-line summary-commission">
+                            <span>
+                                <span data-i18n="label_estimator_commission">Estimator commission</span> (<?= e((string)(float)$commissionPercent) ?>%)
+                                <small class="commission-hint" data-i18n="hint_commission_hidden">Not shown to client</small>
+                            </span>
+                            <span id="summary-commission">+$0.00</span>
+                        </div>
+                    <?php endif; ?>
                     <div class="summary-line">
                         <label class="summary-line-input">
                             <span data-i18n="label_discount">Discount</span>

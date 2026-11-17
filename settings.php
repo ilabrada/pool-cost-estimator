@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setSetting('estimate_prefix', trim($_POST['estimate_prefix'] ?? 'EST'));
         setSetting('estimate_terms', trim($_POST['estimate_terms'] ?? ''));
         setSetting('standard_tier_discount', (string)max(0, min(100, (float)($_POST['standard_tier_discount'] ?? 0))));
+        setSetting('max_estimator_commission', (string)max(0, min(100, (float)($_POST['max_estimator_commission'] ?? 0))));
         logAudit('settings', null, 'update', ['section' => 'business']);
         $success = 'Business settings saved!';
         $tab = 'business';
@@ -197,6 +198,13 @@ include __DIR__ . '/includes/header.php';
                         <input type="number" id="standard_tier_discount" name="standard_tier_discount"
                                step="0.5" min="0" max="100"
                                value="<?= e($settings['standard_tier_discount'] ?? '10') ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="max_estimator_commission" data-i18n="label_max_commission">Max Estimator Commission (%)</label>
+                        <input type="number" id="max_estimator_commission" name="max_estimator_commission"
+                               step="0.5" min="0" max="100"
+                               value="<?= e($settings['max_estimator_commission'] ?? '0') ?>">
+                        <small class="form-help" data-i18n="help_max_commission">Estimators can add up to this % to their quotes. It is included in the total but never shown to the client. 0 turns it off.</small>
                     </div>
                 </div>
                 <div class="form-group">
