@@ -10,6 +10,7 @@ A mobile-first web application for estimating swimming pool construction costs. 
 - **Mobile Optimized** — Responsive design works great on tablets and phones (PWA-ready)
 - **PIN Authentication** — Admin plus any number of estimator users, each with their own PIN
 - **Per-Estimator Data** — Estimators only see the clients and estimates they created; the admin sees everything and manages settings
+- **Estimator Commission** — Estimators can add a commission % (capped by the admin) that is included in the client's subtotal and total but never itemized or shown to the client
 - **Configurable Pricing** — Customize all unit prices from Settings
 - **Real-time Calculations** — Costs update live as you fill in the form
 - **Estimate Management** — Create, edit, duplicate, delete, track status
